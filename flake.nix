@@ -17,9 +17,8 @@
       system = "x86_64-linux";
       modules = [
         disko.nixosModules.disko
-        # tbd
-        # ./disk-config.nix
-        # ./configuration.nix
+        ./disk-config.nix
+        ./configuration.nix
       ];
     };
   };
