@@ -5,6 +5,7 @@ in {
   boot.loader.grub.enable = true;
   boot.loader.grub.efiSupport = true;
   boot.loader.grub.efiInstallAsRemovable = true;
+  boot.initrd.availableKernelModules = ["ahci" "xhci_pci" "virtio_pci" "virtio_scsi" "sd_mod" "sr_mod"];
 
   # Networking
   networking.hostName = "agent";
@@ -17,7 +18,10 @@ in {
   };
 
   users.users.root.openssh.authorizedKeys.keys = keys.authorizedKeys;
-
+  users.users.agent = {
+    isNormalUser = true;
+    openssh.authorizedKeys.keys = keys.authorizedKeys;
+  };
   # FHS compat for random binaries
   programs.nix-ld.enable = true;
 
@@ -48,7 +52,6 @@ in {
     # The point of all this
     claude-code
   ];
-
   # Nix settings
   nix.settings.experimental-features = ["nix-command" "flakes"];
   nixpkgs.config.allowUnfree = true;
