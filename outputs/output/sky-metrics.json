@@ -1,0 +1,519 @@
+{
+  "sky": [
+    {
+      "id": "onchain-ctrl",
+      "name": "Onchain Control",
+      "tags": ["Metric 1"],
+      "about": "This metric evaluates whether economically material outcomes are mediated through tokenholder governance, or whether admins, multisigs, security councils, or other privileged roles retain onchain powers that can change the rules or selectively restrict use and exit.",
+      "summary": "SKY holders control the protocol through onchain governance via the DSChief contract with 18-hour timelock execution. The token has governance-controlled supply through wards authorization. Oracle and emergency functions exist but are accountable to governance.",
+      "criteria": [
+        {
+          "id": "onchain-ctrl__governance-workflow",
+          "name": "Onchain Governance Workflow",
+          "about": "Evaluates whether an onchain process exists that grants tokenholders ultimate authority over protocol decisions.",
+          "status": "✅",
+          "notes": "SKY holders vote onchain via DSChief contract using continuous approval voting. Proposals execute through DSPause with 18-hour delay. MKR can no longer be used for voting as of May 2025.",
+          "evidence": [
+            {
+              "name": "Governance Architecture",
+              "urls": [
+                {
+                  "name": "DSChief Contract",
+                  "url": "https://etherscan.io/address/0x0a3f6849f78076aefaDf113F5BED87720274dDC0#code",
+                  "type": "explorer"
+                },
+                {
+                  "name": "MCD Pause Proxy",
+                  "url": "https://etherscan.io/address/0xBE8E3e3618f7474F8cB1d074A26afFef007E98FB#code",
+                  "type": "explorer"
+                },
+                {
+                  "name": "Governance Upgrade Documentation",
+                  "url": "https://developers.sky.money/guides/sky/token-governance-upgrade/overview/",
+                  "type": "docs"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "onchain-ctrl__role-accountability",
+          "name": "Role Accountability",
+          "about": "Determines whether all privileged or value-impacting roles are governed, revocable, and accountable to tokenholders.",
+          "status": "✅",
+          "notes": "Emergency Shutdown Module (ESM) can irreversibly shutdown protocol with 100,000 MKR (verified via contract min parameter). DSPause provides 18-hour delay. Oracle providers are external dependencies. All roles ultimately accountable to governance except ESM which is a minority protection mechanism.",
+          "evidence": [
+            {
+              "name": "Emergency Shutdown Module",
+              "summary": "100,000 MKR threshold can trigger irreversible protocol shutdown. Tokens sent are permanently burnt.",
+              "urls": [
+                {
+                  "name": "ESM Contract (min threshold readable)",
+                  "url": "https://etherscan.io/address/0x09e05fF6142F2f9de8B6B65855A1d56B6cfE4c58#readContract",
+                  "type": "explorer"
+                },
+                {
+                  "name": "ESM GitHub",
+                  "url": "https://github.com/sky-ecosystem/esm",
+                  "type": "github"
+                }
+              ]
+            },
+            {
+              "name": "DeFiScan Analysis",
+              "urls": [
+                {
+                  "name": "Sky Protocol Stage 0 Assessment",
+                  "url": "https://www.defiscan.info/protocols/sky/ethereum",
+                  "type": "docs"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "onchain-ctrl__protocol-upgrade",
+          "name": "Protocol Upgrade Authority",
+          "about": "Determines whether core protocol logic can be upgraded and whether such upgrades are controlled by tokenholders.",
+          "status": "✅",
+          "notes": "Core protocol contracts upgradeable via governance. Upgrade path: Governance proposal -> Chief vote -> DSPause (18h delay) -> Execution. USDS and sUSDS use upgradeToAndCall pattern.",
+          "evidence": [
+            {
+              "name": "Upgrade Chain",
+              "summary": "Governance -> DSChief -> DSPause (18h) -> DSPause Proxy -> Protocol Contracts",
+              "urls": [
+                {
+                  "name": "DSChief",
+                  "url": "https://etherscan.io/address/0x0a3f6849f78076aefaDf113F5BED87720274dDC0#code",
+                  "type": "explorer"
+                },
+                {
+                  "name": "MCD Pause Proxy",
+                  "url": "https://etherscan.io/address/0xBE8E3e3618f7474F8cB1d074A26afFef007E98FB#code",
+                  "type": "explorer"
+                },
+                {
+                  "name": "Vat Core Contract",
+                  "url": "https://etherscan.io/address/0x35D1b3F3D7966A1DFe207aa4514C12a259A0492B",
+                  "type": "explorer"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "onchain-ctrl__token-upgrade",
+          "name": "Token Upgrade Authority",
+          "about": "Assesses whether token behavior can be modified and, if so, whether such changes are controlled by tokenholder governance.",
+          "status": "✅",
+          "notes": "SKY token uses wards-based authorization. Wards can mint/burn and manage authorization. Ward permissions controlled by governance through DSPause Proxy.",
+          "evidence": [
+            {
+              "name": "Token Authorization",
+              "summary": "SKY Token -> Wards (auth) -> DSPause Proxy -> Governance",
+              "urls": [
+                {
+                  "name": "SKY Token Contract",
+                  "url": "https://etherscan.io/address/0x56072C95FAA701256059aa122697B133aDEd9279#code",
+                  "type": "explorer"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "onchain-ctrl__supply",
+          "name": "Supply Control",
+          "about": "Evaluates whether token supply changes are programmatic or subject exclusively to tokenholder-approved governance processes.",
+          "status": "⚠️",
+          "notes": "No fixed supply cap. Supply controlled via mint() function accessible only to authorized wards. Current supply ~23.4B SKY. MKR converts at 1:24,000 ratio. Smart Burn Engine reduces supply. Unlike AAVE's fixed 16M, SKY supply is governance-controlled but not hardcoded.",
+          "evidence": [
+            {
+              "name": "Supply Mechanisms",
+              "urls": [
+                {
+                  "name": "SKY Token (mint function in source)",
+                  "url": "https://etherscan.io/address/0x56072C95FAA701256059aa122697B133aDEd9279#code",
+                  "type": "explorer"
+                },
+                {
+                  "name": "MKR-SKY Converter V2",
+                  "url": "https://etherscan.io/address/0xA1Ea1bA18E88C381C724a75F23a130420C403f9a",
+                  "type": "explorer"
+                },
+                {
+                  "name": "MKR to SKY Upgrade",
+                  "url": "https://upgrademkrtosky.sky.money/",
+                  "type": "docs"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "onchain-ctrl__access-gating",
+          "name": "Privileged Access Gating",
+          "about": "Assesses whether any bounded actor set can block or selectively restrict economically meaningful protocol actions or exit paths, versus access that is permissionless and symmetric for similarly situated users.",
+          "status": "⚠️",
+          "notes": "Chronicle oracles provide price feeds with high centralization score. Emergency functions can pause operations. USDC dependency creates counterparty risk for USDS. Exit window is 18 hours (below Stage 1 requirements).",
+          "evidence": [
+            {
+              "name": "Oracle Dependency",
+              "summary": "Chronicle validators include Bitcoin Suisse, ETHGlobal, Gitcoin, Etherscan. 1-hour price delay via OSM.",
+              "urls": [
+                {
+                  "name": "DeFiScan Oracle Analysis",
+                  "url": "https://www.defiscan.info/protocols/sky/ethereum",
+                  "type": "docs"
+                }
+              ]
+            },
+            {
+              "name": "Emergency Functions",
+              "urls": [
+                {
+                  "name": "ESM Documentation",
+                  "url": "https://docs.makerdao.com/smart-contract-modules/emergency-shutdown-module",
+                  "type": "docs"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "onchain-ctrl__censorship",
+          "name": "Token Censorship",
+          "about": "Examines whether any roles exist that can freeze, blacklist, seize, or otherwise censor token balances or transfers.",
+          "status": "✅",
+          "notes": "No freeze, blacklist, or seizure functions exist in SKY token contract. Token transfers are permissionless. Standard ERC-20 with EIP-712 permit.",
+          "evidence": [
+            {
+              "urls": [
+                {
+                  "name": "SKY Token Implementation (no censorship functions)",
+                  "url": "https://etherscan.io/address/0x56072C95FAA701256059aa122697B133aDEd9279#code",
+                  "type": "explorer"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "val-accrual",
+      "name": "Value Accrual",
+      "tags": ["Metric 2"],
+      "about": "This metric evaluates whether the system's operation produces observable, onchain value flows (or token-scarcity effects) that accrue value to tokenholders under rule-based constraints that do not rely on manual transfers, trusted executors, or other unenforced expectations.",
+      "summary": "Protocol fees flow to governance-controlled treasury. Smart Burn Engine actively repurchases and burns SKY ($102M+ since Feb 2025). Staking Engine provides yield. Treasury composed of stability fees, liquidation penalties, and protocol surplus.",
+      "criteria": [
+        {
+          "id": "val-accrual__active",
+          "name": "Accrual Active",
+          "about": "Assesses whether value flows to tokenholders are currently active rather than merely theoretical or proposed.",
+          "status": "✅",
+          "notes": "Smart Burn Engine actively repurchases SKY using protocol surplus. Over $102M deployed since February 2025 (~5.55% of circulating supply). Daily allocation up to 300,000 USDS. Staking Engine allows SKY holders to earn rewards and borrow USDS.",
+          "evidence": [
+            {
+              "name": "Buyback Program",
+              "urls": [
+                {
+                  "name": "Sky Protocol Buyback Analysis (CryptoRank)",
+                  "url": "https://cryptorank.io/news/feed/ccf8c-sky-protocol-buyback-tokens",
+                  "type": "docs"
+                },
+                {
+                  "name": "Sky Protocol Research (Messari)",
+                  "url": "https://messari.io/project/sky-protocol",
+                  "type": "docs"
+                }
+              ]
+            },
+            {
+              "name": "Smart Burn Engine Initialization",
+              "urls": [
+                {
+                  "name": "SBE Upgrade Governance Proposal (Sept 2024)",
+                  "url": "https://vote.makerdao.com/executive/template-executive-vote-out-of-schedule-executive-vote-usds-susds-and-sky-tokens-initialization-sbe-upgrade-sky-dssvestmintable-setup-usds-sky-farming-setup-usds-01-farming-setup-miscellaneous-actions-september-13-2024",
+                  "type": "docs"
+                }
+              ]
+            },
+            {
+              "name": "Staking Engine",
+              "urls": [
+                {
+                  "name": "Sky Protocol Documentation",
+                  "url": "https://developers.sky.money/",
+                  "type": "docs"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "val-accrual__treasury",
+          "name": "Treasury Ownership",
+          "about": "Determines whether protocol treasury assets are programmatically controlled by tokenholder governance.",
+          "status": "✅",
+          "notes": "Treasury controlled by SKY governance via Vow contract and DSPause Proxy. MCD Pause Proxy holds $143M+ in assets (SPK, SKY, MKR). Treasury funded by stability fees, liquidation penalties, and protocol surplus.",
+          "evidence": [
+            {
+              "name": "Treasury Holdings",
+              "summary": "DSPause Proxy holds $143.1M+: SPK ($115.8M), SKY ($27.3M), MKR ($68.6K)",
+              "urls": [
+                {
+                  "name": "MCD Pause Proxy Holdings",
+                  "url": "https://etherscan.io/address/0xBE8E3e3618f7474F8cB1d074A26afFef007E98FB",
+                  "type": "explorer"
+                },
+                {
+                  "name": "Vow Documentation",
+                  "url": "https://docs.makerdao.com/smart-contract-modules/system-stabilizer-module/vow-detailed-documentation",
+                  "type": "docs"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "val-accrual__mechanism",
+          "name": "Accrual Mechanism Control",
+          "about": "Evaluates whether tokenholders can modify parameters governing value capture, such as fees or revenue routing.",
+          "status": "✅",
+          "notes": "SKY holders control all fee parameters via governance: stability fees, savings rate, liquidation ratios, Smart Burn Engine allocation, and staking reward APY. All controlled through DSPause execution.",
+          "evidence": [
+            {
+              "name": "Parameter Control",
+              "urls": [
+                {
+                  "name": "Smart Burn Engine Parameter Update (Apr 2025)",
+                  "url": "https://vote.makerdao.com/executive/template-executive-vote-allocator-bloom-a-initialization-smart-burn-engine-parameter-update-spark-tokenization-grand-prix-dao-resolution-spark-proxy-spell-april-3-2025",
+                  "type": "docs"
+                },
+                {
+                  "name": "Pot (Savings Rate) Documentation",
+                  "url": "https://docs.makerdao.com/smart-contract-modules/rates-module/pot-detailed-documentation",
+                  "type": "docs"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "val-accrual__offchain",
+          "name": "Offchain Value Accrual",
+          "tags": ["Reference"],
+          "about": "Are there additional offchain value accrual flows that benefit tokenholders?",
+          "status": "TBD",
+          "notes": "No offchain value accrual flows to the SKY token have been independently verified.",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "verifiability",
+      "name": "Verifiability",
+      "tags": ["Metric 3"],
+      "about": "This metric measures whether a token's economically material code and deployments are independently verifiable from primary evidence without relying on insider assurances.",
+      "summary": "SKY token and all core protocol contracts are verified on Etherscan. Protocol source code is open source under AGPL-3.0 on GitHub (sky-ecosystem organization).",
+      "criteria": [
+        {
+          "id": "verifiability__token-source",
+          "name": "Token Contract Source Verification",
+          "about": "Determines whether the token contract's source code is publicly available and verifiably matches the deployed bytecode.",
+          "status": "✅",
+          "notes": "SKY token contract source code is publicly available and verified on Etherscan with exact bytecode match. Compiler: Solidity v0.8.21.",
+          "evidence": [
+            {
+              "urls": [
+                {
+                  "name": "SKY Token (Verified)",
+                  "url": "https://etherscan.io/address/0x56072C95FAA701256059aa122697B133aDEd9279#code",
+                  "type": "explorer"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "verifiability__protocol-source",
+          "name": "Protocol Component Source Verification",
+          "about": "Determines whether core protocol contracts are publicly accessible and verifiable against their onchain deployments.",
+          "status": "✅",
+          "notes": "All core Sky Protocol contracts are open source on GitHub and verified on Etherscan. DSS repository has 812 stars, 441 forks under AGPL-3.0 license.",
+          "evidence": [
+            {
+              "name": "GitHub Repositories",
+              "urls": [
+                {
+                  "name": "DSS (Dai Stablecoin System)",
+                  "url": "https://github.com/makerdao/dss",
+                  "type": "github"
+                },
+                {
+                  "name": "Sky Ecosystem GitHub",
+                  "url": "https://github.com/sky-ecosystem",
+                  "type": "github"
+                }
+              ]
+            },
+            {
+              "name": "Verified Contracts",
+              "urls": [
+                {
+                  "name": "DSChief",
+                  "url": "https://etherscan.io/address/0x0a3f6849f78076aefaDf113F5BED87720274dDC0#code",
+                  "type": "explorer"
+                },
+                {
+                  "name": "Vat",
+                  "url": "https://etherscan.io/address/0x35D1b3F3D7966A1DFe207aa4514C12a259A0492B",
+                  "type": "explorer"
+                },
+                {
+                  "name": "USDS Proxy",
+                  "url": "https://etherscan.io/address/0xdC035D45d973E3EC169d2276DDab16f1e407384F",
+                  "type": "explorer"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "distribution",
+      "name": "Token Distribution",
+      "tags": ["Metric 4"],
+      "about": "This metric evaluates whether ownership and therefore effective voting power in governance is meaningfully distributed.",
+      "summary": "11,509 SKY holders. ~26% of MKR has been migrated to SKY as of May 2025. Specific concentration analysis not yet verified.",
+      "criteria": [
+        {
+          "id": "distribution__concentration",
+          "name": "Ownership Concentration",
+          "about": "Measures whether a single actor or coordinated group controls a majority of the voting supply.",
+          "status": "TBD",
+          "notes": "Concentration data not independently verified through on-chain analysis. Current holder count: 11,509 addresses. Significant supply remains as unconverted MKR.",
+          "evidence": [
+            {
+              "urls": [
+                {
+                  "name": "SKY Token Holders",
+                  "url": "https://etherscan.io/token/0x56072c95faa701256059aa122697b133aded9279#balances",
+                  "type": "explorer"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "distribution__supply-schedule",
+          "name": "Future Token Unlocks",
+          "about": "Are there known, future events (such as vesting cliffs) that will materially affect the concentration of tokens?",
+          "status": "⚠️",
+          "notes": "~74% of MKR supply still unconverted to SKY. Conversion at 1:24,000 ratio ongoing. Delayed Upgrade Penalty (1% increasing quarterly since Sep 2025) incentivizes migration. Staking rewards may mint new SKY.",
+          "evidence": [
+            {
+              "urls": [
+                {
+                  "name": "MKR to SKY Upgrade",
+                  "url": "https://upgrademkrtosky.sky.money/",
+                  "type": "docs"
+                },
+                {
+                  "name": "Token Governance Upgrade Overview",
+                  "url": "https://developers.sky.money/guides/sky/token-governance-upgrade/overview/",
+                  "type": "docs"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "offchain",
+      "name": "Offchain Dependencies",
+      "tags": ["Reference"],
+      "about": "Economically material assets and obligations often sit offchain—outside the custody and direct enforcement of a token—while still determining which interfaces and domains most users reach, where fees are charged or captured, who can commercialize or restrict the software, and who can sign contracts or move offchain funds.",
+      "summary": "Maker/Dai trademarks held by Dai Foundation (Denmark). Sky.money interface operated by Skybase International. Protocol code is AGPL-3.0. Sky trademark status unclear.",
+      "criteria": [
+        {
+          "id": "offchain__trademark",
+          "name": "Trademark",
+          "about": "Are core trademarks and brand assets owned or controlled by a tokenholder-controlled legal entity?",
+          "status": "⚠️",
+          "notes": "Maker and Dai trademarks transferred to Dai Foundation (Denmark-based independent nonprofit) in 2020. Dai Foundation operates independently with objective statutes, not directly controlled by SKY governance. 'Sky' trademark ownership status not explicitly confirmed.",
+          "evidence": [
+            {
+              "urls": [
+                {
+                  "name": "Dai Foundation",
+                  "url": "https://daifoundation.org/",
+                  "type": "docs"
+                },
+                {
+                  "name": "Trademark Transfer (The Block)",
+                  "url": "https://www.theblock.co/linked/51816/maker-foundation-transfers-trademarks-and-ip-to-independent-foundation",
+                  "type": "docs"
+                },
+                {
+                  "name": "MakerDAO Trademark Registration (Justia)",
+                  "url": "https://trademarks.justia.com/878/77/makerdao-87877844.html",
+                  "type": "docs"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "offchain__distribution",
+          "name": "Distribution",
+          "about": "Are primary domains and distribution assets owned or controlled by a tokenholder-controlled legal entity?",
+          "status": "⚠️",
+          "notes": "Sky.money interface operated by Skybase International, a separate legal entity. Skybase retains proprietary rights to the Services. Not directly controlled by SKY governance.",
+          "evidence": [
+            {
+              "urls": [
+                {
+                  "name": "Sky.money",
+                  "url": "https://sky.money/",
+                  "type": "docs"
+                },
+                {
+                  "name": "Sky Protocol Profile (Messari)",
+                  "url": "https://messari.io/project/sky-protocol/profile",
+                  "type": "docs"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "offchain__licensing",
+          "name": "Licensing",
+          "about": "Is core protocol software/IP (and any associated licensing rights, where applicable) owned or controlled by a tokenholder-controlled legal entity?",
+          "status": "✅",
+          "notes": "Core protocol code (DSS) is open source under AGPL-3.0 license. Anyone can fork and deploy. IP transferred to Dai Foundation which operates independently for community benefit.",
+          "evidence": [
+            {
+              "urls": [
+                {
+                  "name": "DSS Repository (AGPL-3.0)",
+                  "url": "https://github.com/makerdao/dss",
+                  "type": "github"
+                },
+                {
+                  "name": "Dai Foundation Mandate",
+                  "url": "https://daifoundation.org/",
+                  "type": "docs"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
