@@ -17,11 +17,17 @@ in {
     settings.PermitRootLogin = "prohibit-password";
   };
 
-  users.users.root.openssh.authorizedKeys.keys = keys.authorizedKeys;
-  users.users.agent = {
-    isNormalUser = true;
-    openssh.authorizedKeys.keys = keys.authorizedKeys;
+  users.users = {
+    root = {
+      openssh.authorizedKeys.keys = keys.authorizedKeys;
+    };
+    # claude not a fan of sudo
+    agent = {
+      isNormalUser = true;
+      openssh.authorizedKeys.keys = keys.authorizedKeys;
+    };
   };
+
   # FHS compat for random binaries
   programs.nix-ld.enable = true;
 
@@ -37,6 +43,8 @@ in {
     fd
     tree
     btop
+    nvim
+    vim
 
     # Languages
     python3
