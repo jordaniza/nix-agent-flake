@@ -21,21 +21,21 @@ Minimal NixOS config for running Claude Code on a remote machine via nixos-anywh
   provision         Create a Hetzner cloud server
   install           Install NixOS on the server via nixos-anywhere
   connect           SSH into the server
-  setup-task        Create task dirs and copy persona/task files to server (TASK=SKY)
-  fetch-results     Pull results back from the server (TASK=SKY)
+  setup-task        Create task dirs and copy persona/task files to server
+  fetch-results     Pull results back from the server
+  deploy            Tear down existing server (if any), provision, install NixOS, and push task
+  rebuild           Teardown and redeploy from scratch
   teardown          Delete the server
 ```
 
 Typical workflow:
 
 ```bash
-make ssh-keygen                # one-time: create key + register with Hetzner
-make provision                 # spin up a server
-make install                   # install NixOS via nixos-anywhere
-make setup-task TASK=SKY       # create task directory structure + copy files
-make connect                   # SSH in and run agents
-make fetch-results TASK=SKY    # pull results back
-make teardown                  # delete the server
+make ssh-keygen                    # one-time: create key + register with Hetzner
+make deploy TASK=my-task           # provision, install NixOS, and push task files
+make connect                       # SSH in and run agents
+make fetch-results TASK=my-task    # pull results back
+make teardown                      # delete the server
 ```
 
 `setup-task` creates this structure on the VPS:
