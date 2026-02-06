@@ -43,7 +43,6 @@ in {
     fd
     tree
     btop
-    nvim
     vim
 
     # Languages
@@ -60,6 +59,8 @@ in {
     # The point of all this
     claude-code
   ];
+  environment.variables.EDITOR = "vim";
+
   # Nix settings
   nix.settings.experimental-features = ["nix-command" "flakes"];
   nixpkgs.config.allowUnfree = true;

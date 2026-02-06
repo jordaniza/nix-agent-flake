@@ -35,6 +35,16 @@ A JSON file for SKY in the style of existing entries in `metrics.json`. Must:
 - Be traceable back to the research report
 - Include all required fields
 
+### 3. Source List
+
+In the research report, create a section called 'Sources' and provide link (including GH line reference, if referencing code), description. This should triangulate with the rest of the claims in 1. If referencing a smart contract, also make the corresponding call to the view function of the smart contract to ensure the data recieved is in line with expectations. This can be a duplicate of the inline links.
+
+### 4. Schematic
+
+In the research report, create a simple markdown diagram of the most relevant flows for governance, permissions and value accrual.
+
+This is designed for summaries. Clarity but precision is favoured over exhaustive, confusing diagrams.
+
 ## Quality Criteria
 
 - Links must resolve and point to the correct content
