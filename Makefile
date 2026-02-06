@@ -7,7 +7,7 @@ FLAKE        ?= .\#agent
 TASK         ?= SKY
 
 # Prompt for server name when a target needs it and SERVER wasn't passed
-NEEDS_SERVER := provision install connect setup-task fetch-results fetch-all deploy rebuild teardown
+NEEDS_SERVER := provision install connect setup-task fetch-results fetch-all fetch-logs deploy rebuild teardown run tail-logs
 
 ifneq ($(filter $(NEEDS_SERVER),$(MAKECMDGOALS)),)
 ifndef SERVER
@@ -33,7 +33,7 @@ SSH_OPTS      = -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 SCP           = scp -i $(SSH_KEY) $(SSH_OPTS)
 SSH           = ssh -i $(SSH_KEY) $(SSH_OPTS)
 
-.PHONY: help list status ssh-keygen _sync provision install connect setup-task fetch-results fetch-all teardown deploy rebuild
+.PHONY: help list status ssh-keygen _sync provision install connect setup-task fetch-results fetch-all fetch-logs teardown deploy rebuild run tail-logs
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -71,14 +71,16 @@ install: ## Install NixOS on the server via nixos-anywhere
 connect: ## SSH into the server
 	$(SSH) $(REMOTE)
 
-setup-task: ## Create task dirs and copy persona/task files to server (TASK=SKY)
-	$(SSH) $(REMOTE) "mkdir -p ~/tasks/$(TASK)/{worker,reviewer,editor,output}"
+setup-task: ## Create task dirs and copy persona/task/runner files to server
+	$(SSH) $(REMOTE) "mkdir -p ~/tasks/$(TASK)/{worker,reviewer,editor,output,logs}"
 	$(SCP) tasks/$(TASK)-worker.md $(REMOTE):~/tasks/$(TASK)/task.md
 	$(SCP) personas/WORKER.md $(REMOTE):~/tasks/$(TASK)/worker/CLAUDE.md
 	$(SCP) personas/REVIEWER.md $(REMOTE):~/tasks/$(TASK)/reviewer/CLAUDE.md
 	$(SCP) personas/EDITOR.md $(REMOTE):~/tasks/$(TASK)/editor/CLAUDE.md
 	$(SCP) tasks/$(TASK)-reviewer.md $(REMOTE):~/tasks/$(TASK)/reviewer/review-instructions.md
 	$(SCP) tasks/$(TASK)-editor.md $(REMOTE):~/tasks/$(TASK)/editor/editor-instructions.md
+	$(SCP) run.sh $(REMOTE):~/run.sh
+	$(SSH) $(REMOTE) "chmod +x ~/run.sh"
 
 fetch-results: ## Pull output files from the server
 	mkdir -p ./results/$(TASK)
@@ -87,6 +89,16 @@ fetch-results: ## Pull output files from the server
 fetch-all: ## Pull entire task directory including all agent logs
 	mkdir -p ./results/$(TASK)
 	rsync -avz -e 'ssh -i $(SSH_KEY) $(SSH_OPTS)' $(REMOTE):~/tasks/$(TASK)/ ./results/$(TASK)/
+
+fetch-logs: ## Pull just the logs directory
+	mkdir -p ./results/$(TASK)/logs
+	rsync -avz -e 'ssh -i $(SSH_KEY) $(SSH_OPTS)' $(REMOTE):~/tasks/$(TASK)/logs/ ./results/$(TASK)/logs/
+
+run: ## Run the worker/reviewer loop remotely (TASK=CRV, ROUNDS=5)
+	$(SSH) $(REMOTE) "~/run.sh $(TASK) $(or $(ROUNDS),5)"
+
+tail-logs: ## Stream live agent output from the server (POLL=2)
+	@./tail-logs.sh $(REMOTE) $(SSH_KEY) "$(SSH_OPTS)" $(TASK) $(or $(POLL),2)
 
 deploy: _register ## Tear down existing server (if any), provision, install NixOS, and push task
 	@hcloud server describe $(SERVER) >/dev/null 2>&1 && \
