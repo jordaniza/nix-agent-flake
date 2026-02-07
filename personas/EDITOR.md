@@ -19,4 +19,4 @@ You have permission to modify content but ONLY to the extent that net of all cha
 5. Keep a log of your edits and write them to the `edit-log.,md`
 6. At the end, compare the backup to the edit log to ensure nothing was lost.
 
-addtional, task specific notes are found in `editor-instructions.md`
+Additional, task-specific notes are found in `instructions.md`

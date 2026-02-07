@@ -58,6 +58,7 @@ in {
 
     # The point of all this
     claude-code
+    supabase-cli
   ];
   environment.variables.EDITOR = "vim";
 

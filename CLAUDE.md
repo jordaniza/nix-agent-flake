@@ -7,19 +7,25 @@ This repo is scaffolding for running multi-agent workflows on ephemeral Hetzner 
 ```
 .
 ├── Makefile                  # Orchestration: provision, deploy, run, fetch, teardown
-├── run.sh                    # Execution loop (worker/reviewer rounds) — runs ON the VPS
+├── run.sh                    # Pipeline executor — runs ON the VPS
+├── setup-task.sh             # Deploys personas, task files, and pipeline to VPS
 ├── tail-logs.sh              # Live log streaming from VPS to local terminal
 ├── agents.md                 # Registry of active servers (auto-managed by Makefile)
+├── .env.template             # Required env vars for service credentials
 │
 ├── personas/                 # Agent role definitions (deployed as CLAUDE.md on VPS)
 │   ├── WORKER.md             # Executes tasks, writes output, documents in summary.md
-│   ├── REVIEWER.md           # Fact-checks, writes feedback, approves with "DONE"
+│   ├── REVIEWER.md           # Fact-checks, writes feedback, approves via status.tmp
+│   ├── DESIGNER.md           # Refines UI/UX, creates design spec, modifies output
 │   └── EDITOR.md             # Refines tone/readability, never changes meaning
 │
-├── tasks/                    # Task definitions (3 files per task)
-│   ├── <TASK>-worker.md      # Main task brief, deliverables, quality criteria
-│   ├── <TASK>-reviewer.md    # Task-specific review instructions
-│   └── <TASK>-editor.md      # Task-specific editorial guidance
+├── tasks/                    # One directory per task
+│   └── <TASK>/
+│       ├── pipeline           # Stage definitions (plain text, one line per stage)
+│       ├── worker.md          # Main task brief, deliverables, quality criteria
+│       ├── reviewer.md        # Task-specific review instructions
+│       ├── designer.md        # Task-specific design criteria (optional)
+│       └── editor.md          # Task-specific editorial guidance (optional)
 │
 ├── results/                  # Fetched outputs from completed runs (gitignored)
 │
@@ -36,59 +42,71 @@ This repo is scaffolding for running multi-agent workflows on ephemeral Hetzner 
 
 All commands go through the Makefile. The typical flow:
 
-1. `make deploy TASK=SKY` — tears down any existing server with that name, provisions a Hetzner cx23 instance, installs NixOS via nixos-anywhere, copies task files + personas + run.sh to the VPS
-2. `make run TASK=SKY ROUNDS=5` — SSHes into the VPS and executes `run.sh`
+1. `make deploy TASK=SKY` — tears down any existing server with that name, provisions a Hetzner cx23 instance, installs NixOS via nixos-anywhere, runs `setup-task.sh` to copy personas + task files + pipeline to the VPS
+2. `make run TASK=SKY` — SSHes into the VPS and executes `run.sh`, which reads the pipeline file to determine stages
 3. `make fetch-results TASK=SKY` — rsyncs `output/` back to `./results/SKY/`
 4. `make teardown` — deletes the server, deregisters from agents.md
 
 ### Execution loop (run.sh)
 
-`run.sh` runs on the VPS. For each round (up to MAX_ROUNDS):
+`run.sh` runs on the VPS. It reads `pipeline` to determine stages. Each stage defines a pair of agents and a max round count. The pipeline file is plain text, one line per stage:
 
-1. **Worker** runs in `~/tasks/<TASK>/worker/` — Claude reads CLAUDE.md (the worker persona), reads `../task.md`, does the work, writes files to `../output/`, appends progress to `summary.md`. If `review.md` exists from a previous round, it implements the feedback.
-2. **Reviewer** runs in `~/tasks/<TASK>/reviewer/` — Claude reads CLAUDE.md (the reviewer persona), reads `../task.md` and `../worker/summary.md`, examines `../output/`, writes private notes to `review-log.md`, writes actionable feedback to `../worker/review.md`.
-3. If `worker/review.md` starts with `DONE`, the loop exits. Otherwise the next round begins.
+```
+build 5 worker reviewer
+design 3 designer reviewer
+```
 
-Both agents run with `claude --dangerously-skip-permissions` and log full JSONL to `logs/`.
+For each stage, `run.sh` runs a feedback loop: the first agent (doer) works, the second agent (reviewer) checks it. If the second agent writes `APPROVED` to `../status.tmp`, the stage exits early. Otherwise it runs for the full round count.
+
+All agents run with `claude --dangerously-skip-permissions` and log full JSONL to `logs/`.
 
 ### VPS task structure
 
-`make setup-task` creates this on the server:
+`setup-task.sh` creates one directory per persona on the server:
 
 ```
 ~/tasks/<TASK>/
-├── task.md                    # Copied from tasks/<TASK>-worker.md
+├── task.md                    # Copied from tasks/<TASK>/worker.md
+├── pipeline                   # Copied from tasks/<TASK>/pipeline
 ├── output/                    # Shared deliverables directory
-├── logs/                      # JSONL execution logs
+├── logs/                      # JSONL execution logs (stage-agent-rN.jsonl)
 ├── worker/
-│   └── CLAUDE.md              # Copied from personas/WORKER.md
+│   ├── CLAUDE.md              # Copied from personas/WORKER.md
+│   └── instructions.md        # Copied from tasks/<TASK>/worker.md (if exists)
 ├── reviewer/
 │   ├── CLAUDE.md              # Copied from personas/REVIEWER.md
-│   └── review-instructions.md # Copied from tasks/<TASK>-reviewer.md
+│   └── instructions.md        # Copied from tasks/<TASK>/reviewer.md (if exists)
+├── designer/
+│   ├── CLAUDE.md              # Copied from personas/DESIGNER.md
+│   └── instructions.md        # Copied from tasks/<TASK>/designer.md (if exists)
 └── editor/
     ├── CLAUDE.md              # Copied from personas/EDITOR.md
-    └── editor-instructions.md # Copied from tasks/<TASK>-editor.md
+    └── instructions.md        # Copied from tasks/<TASK>/editor.md (if exists)
 ```
 
 ### Agent roles
 
-**Worker** (`personas/WORKER.md`): Does the work. Reads task.md, writes deliverables to `../output/`, appends decisions and progress to `summary.md`. If review.md exists, implements the requested changes. Never reads `../reviewer/`.
+**Worker** (`personas/WORKER.md`): Does the work. Reads task.md, writes deliverables to `../output/`, appends decisions and progress to `summary.md`. If review.md exists, implements the requested changes.
 
-**Reviewer** (`personas/REVIEWER.md`): Quality gate. Reads task.md, worker's summary.md, and everything in output/. Fact-checks links, verifies claims, checks that code runs. Appends private findings to `review-log.md`, actionable feedback to `../worker/review.md`. Writes "DONE - Approved for human review." when satisfied. Never modifies files in `output/`.
+**Reviewer** (`personas/REVIEWER.md`): Quality gate. Reads task.md, the primary agent's summary.md, and everything in output/. Fact-checks links, verifies claims, checks that code runs. Appends private findings to `review-log.md`, actionable feedback to the primary agent's `review.md`. Writes `APPROVED` to `../status.tmp` when satisfied. Never modifies files in `output/`.
+
+**Designer** (`personas/DESIGNER.md`): Product designer. Creates a design spec (target persona, design principles, visual direction), then refines output files for UI/UX quality. Backs up originals before modifying. Every change traces back to a design principle.
 
 **Editor** (`personas/EDITOR.md`): Formatting pass. Edits output files for tone, readability, and consistency. Backs up originals to `backups/`, logs changes in `edit-log.md`. Never changes meaning or removes information.
 
 ## Creating a new task
 
-1. Create three files in `tasks/`:
-   - `<TASK>-worker.md` — deliverables, sources, quality criteria
-   - `<TASK>-reviewer.md` — what to verify, how to fact-check
-   - `<TASK>-editor.md` — formatting, tone, conventions
+1. Create a directory in `tasks/<TASK>/` with:
+   - `pipeline` — stage definitions (one line per stage: `name max-rounds agent1 agent2`)
+   - `worker.md` — deliverables, sources, quality criteria
+   - `reviewer.md` — what to verify, how to fact-check
+   - `designer.md` — design criteria (optional, only if pipeline includes designer)
+   - `editor.md` — formatting, tone, conventions (optional, only if pipeline includes editor)
 
 2. Deploy and run:
    ```bash
    make deploy TASK=MYTASK
-   make run TASK=MYTASK ROUNDS=5
+   make run TASK=MYTASK
    ```
 
 ### Example tasks
@@ -103,22 +121,23 @@ Both agents run with `claude --dangerously-skip-permissions` and log full JSONL 
 SSH_KEY      ?= ~/.ssh/agent-vm    # SSH key for VPS access
 SERVER_TYPE  ?= cx23               # Hetzner server type
 TASK         ?= SKY                # Default task name
-ROUNDS       ?= 5                  # Max worker/reviewer rounds (passed to run.sh)
 ```
 
 ## NixOS config
 
 `configuration.nix` sets up the VPS with:
-- Packages: claude-code, git, gh, curl, jq, ripgrep, fd, python3, nodejs 22, bun, yarn, go, gcc, and more
+- Packages: claude-code, supabase-cli, git, gh, curl, jq, ripgrep, fd, python3, nodejs 22, bun, yarn, go, gcc, and more
 - SSH: root + agent user, pubkey-only auth (keys from `keys.nix`)
 - nix-ld enabled for FHS binary compatibility
 - Nix flakes enabled
 
 ## Conventions
 
-- All agent logs are append-only (summary.md, review.md, review-log.md, edit-log.md)
+- All agent logs are append-only (summary.md, review.md, review-log.md, design-log.md, edit-log.md)
 - Deliverables always go in `output/`
-- Editor backs up originals to `backups/` before modifying
-- JSONL logs capture full Claude Code interactions for audit
+- Designer and editor back up originals to `output/backups/` before modifying
+- Reviewer/designer signal approval by writing `APPROVED` to `../status.tmp`
+- JSONL logs capture full Claude Code interactions for audit (named `stage-agent-rN.jsonl`)
 - Servers are tracked in `agents.md` (auto-managed, don't edit manually)
 - Results fetched to `./results/<TASK>/`
+- Service credentials (GitHub, Vercel, Supabase) delivered via `.env` file copied to VPS at deploy time

@@ -72,15 +72,7 @@ connect: ## SSH into the server
 	$(SSH) $(REMOTE)
 
 setup-task: ## Create task dirs and copy persona/task/runner files to server
-	$(SSH) $(REMOTE) "mkdir -p ~/tasks/$(TASK)/{worker,reviewer,editor,output,logs}"
-	$(SCP) tasks/$(TASK)-worker.md $(REMOTE):~/tasks/$(TASK)/task.md
-	$(SCP) personas/WORKER.md $(REMOTE):~/tasks/$(TASK)/worker/CLAUDE.md
-	$(SCP) personas/REVIEWER.md $(REMOTE):~/tasks/$(TASK)/reviewer/CLAUDE.md
-	$(SCP) personas/EDITOR.md $(REMOTE):~/tasks/$(TASK)/editor/CLAUDE.md
-	$(SCP) tasks/$(TASK)-reviewer.md $(REMOTE):~/tasks/$(TASK)/reviewer/review-instructions.md
-	$(SCP) tasks/$(TASK)-editor.md $(REMOTE):~/tasks/$(TASK)/editor/editor-instructions.md
-	$(SCP) run.sh $(REMOTE):~/run.sh
-	$(SSH) $(REMOTE) "chmod +x ~/run.sh"
+	./setup-task.sh $(TASK) $(REMOTE) $(SSH_KEY)
 
 fetch-results: ## Pull output files from the server
 	mkdir -p ./results/$(TASK)
@@ -94,8 +86,8 @@ fetch-logs: ## Pull just the logs directory
 	mkdir -p ./results/$(TASK)/logs
 	rsync -avz -e 'ssh -i $(SSH_KEY) $(SSH_OPTS)' $(REMOTE):~/tasks/$(TASK)/logs/ ./results/$(TASK)/logs/
 
-run: ## Run the worker/reviewer loop remotely (TASK=CRV, ROUNDS=5)
-	$(SSH) $(REMOTE) "~/run.sh $(TASK) $(or $(ROUNDS),5)"
+run: ## Run the pipeline remotely (TASK=SKY)
+	$(SSH) $(REMOTE) "~/run.sh $(TASK)"
 
 tail-logs: ## Stream live agent output from the server (POLL=2)
 	@./tail-logs.sh $(REMOTE) $(SSH_KEY) "$(SSH_OPTS)" $(TASK) $(or $(POLL),2)

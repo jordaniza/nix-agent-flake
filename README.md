@@ -2,24 +2,30 @@
 
 > **This repo is Claude-friendly.** There is a `CLAUDE.md` at the root with full context on how everything works. Point Claude Code at this repo and it can help you create tasks, debug runs, write personas, and manage infrastructure.
 
-Scaffolding for running multi-agent workflows on ephemeral Hetzner VPS instances. Provisions a NixOS server, deploys a task with worker/reviewer/editor personas, runs a feedback loop via Claude Code, and fetches the results.
+Scaffolding for running multi-agent workflows on ephemeral Hetzner VPS instances. Provisions a NixOS server, deploys a task with configurable agent personas, runs a multi-stage pipeline via Claude Code, and fetches the results.
 
 ## How it works
 
-Each task runs on a fresh VPS with three agent roles:
+Each task runs on a fresh VPS with agent roles defined in `personas/`:
 
 - **Worker** — executes the task, writes deliverables to `output/`, documents progress in `summary.md`
-- **Reviewer** — scrutinizes the worker's output, fact-checks claims, writes feedback to `worker/review.md`
+- **Reviewer** — scrutinizes output, fact-checks claims, writes feedback. Writes `APPROVED` to `status.tmp` when satisfied
+- **Designer** — creates a design spec, then refines UI/UX in output files. Backs up originals
 - **Editor** — refines tone, readability, and formatting without changing meaning
 
-The worker and reviewer run in a loop (`run.sh`). Each round, the worker does its work, then the reviewer checks it. If the reviewer writes `DONE`, the loop exits. Otherwise it continues for up to N rounds.
+A `pipeline` file defines stages. Each stage pairs two agents in a feedback loop (or runs one agent solo). Example:
+
+```
+build 5 worker reviewer
+design 3 designer reviewer
+```
 
 ## Quick start
 
 ```bash
 make ssh-keygen                    # one-time: create SSH key + register with Hetzner
 make deploy TASK=SKY               # provision server, install NixOS, push task files
-make run TASK=SKY ROUNDS=5         # run the worker/reviewer loop remotely
+make run TASK=SKY                  # run the pipeline remotely
 make tail-logs TASK=SKY            # (in another terminal) stream live agent output
 make fetch-results TASK=SKY        # pull deliverables back to ./results/SKY/
 make teardown                      # delete the server
@@ -35,7 +41,7 @@ Run `make help` to see all commands:
   install           Install NixOS on the server via nixos-anywhere
   connect           SSH into the server
   setup-task        Create task dirs and copy persona/task/runner files to server
-  run               Run the worker/reviewer loop remotely (TASK=SKY, ROUNDS=5)
+  run               Run the pipeline remotely (TASK=SKY)
   tail-logs         Stream live agent output from the server (POLL=2)
   fetch-results     Pull output files from the server
   fetch-all         Pull entire task directory including all agent logs
@@ -71,63 +77,72 @@ make provision SERVER=agent-02 SERVER_TYPE=cx32
 
 ## VPS task structure
 
-`setup-task` creates this layout on the server:
+`setup-task.sh` creates one directory per persona on the server:
 
 ```
 ~/tasks/<TASK>/
-├── task.md                          # main task brief (from tasks/<TASK>-worker.md)
+├── task.md                          # main task brief (from tasks/<TASK>/worker.md)
+├── pipeline                         # stage definitions (from tasks/<TASK>/pipeline)
 ├── output/                          # shared output directory for deliverables
-├── logs/                            # JSONL execution logs per round
+├── logs/                            # JSONL execution logs (stage-agent-rN.jsonl)
 ├── worker/
-│   └── CLAUDE.md                    # worker persona (from personas/WORKER.md)
+│   ├── CLAUDE.md                    # from personas/WORKER.md
+│   └── instructions.md              # from tasks/<TASK>/worker.md (if exists)
 ├── reviewer/
-│   ├── CLAUDE.md                    # reviewer persona (from personas/REVIEWER.md)
-│   └── review-instructions.md       # task-specific review notes
+│   ├── CLAUDE.md                    # from personas/REVIEWER.md
+│   └── instructions.md              # from tasks/<TASK>/reviewer.md (if exists)
+├── designer/
+│   ├── CLAUDE.md                    # from personas/DESIGNER.md
+│   └── instructions.md              # from tasks/<TASK>/designer.md (if exists)
 └── editor/
-    ├── CLAUDE.md                    # editor persona (from personas/EDITOR.md)
-    └── editor-instructions.md       # task-specific editor notes
+    ├── CLAUDE.md                    # from personas/EDITOR.md
+    └── instructions.md              # from tasks/<TASK>/editor.md (if exists)
 ```
 
 ## Creating a new task
 
-Add three files to `tasks/`:
+Create a directory `tasks/<TASK>/` with:
 
-- `<TASK>-worker.md` — the main task brief (deliverables, sources, quality criteria)
-- `<TASK>-reviewer.md` — task-specific review instructions (what to verify, how to fact-check)
-- `<TASK>-editor.md` — task-specific editorial guidance (formatting, tone, conventions)
+- `pipeline` — stage definitions (one line per stage: `name max-rounds agent1 agent2`)
+- `worker.md` — the main task brief (deliverables, sources, quality criteria)
+- `reviewer.md` — task-specific review instructions (what to verify, how to fact-check)
+- `designer.md` — task-specific design criteria (optional)
+- `editor.md` — task-specific editorial guidance (optional)
 
 Then deploy and run:
 
 ```bash
 make deploy TASK=MYTASK
-make run TASK=MYTASK ROUNDS=5
+make run TASK=MYTASK
 ```
 
-See `tasks/SKY-worker.md` and `tasks/CRV-worker.md` for examples.
+See `tasks/SKY/` and `tasks/CRV/` for examples.
 
 ## Personas
 
 The `personas/` directory contains role definitions deployed as `CLAUDE.md` files:
 
 - **WORKER.md** — executes tasks, writes to `output/`, appends to `summary.md`, implements reviewer feedback
-- **REVIEWER.md** — reads worker output, fact-checks, appends findings to `review-log.md`, writes actionable feedback to `worker/review.md`, writes `DONE` when satisfied
+- **REVIEWER.md** — reads output, fact-checks, writes feedback to the primary agent's `review.md`, writes `APPROVED` to `status.tmp` when satisfied
+- **DESIGNER.md** — creates design spec (persona, principles, visual direction), refines output for UI/UX, backs up originals
 - **EDITOR.md** — edits output for tone/readability, backs up originals to `backups/`, logs changes in `edit-log.md`
 
 ## Execution loop (`run.sh`)
 
-For each round:
-1. Worker runs in `tasks/<TASK>/worker/`, reads `CLAUDE.md` and `../task.md`, produces output
-2. Reviewer runs in `tasks/<TASK>/reviewer/`, reads worker's `summary.md` and `output/`, writes feedback
-3. If `worker/review.md` starts with `DONE`, the loop exits early
-4. Otherwise continues to the next round
+`run.sh` reads the `pipeline` file and executes stages sequentially. Each stage pairs two agents in a feedback loop:
 
-All Claude Code output is logged as JSONL to `logs/worker-r1.jsonl`, `logs/reviewer-r1.jsonl`, etc.
+1. First agent (doer) runs in its directory, reads `CLAUDE.md` and `../task.md`, does its work
+2. Second agent (reviewer) runs in its directory, examines output, writes feedback
+3. If the reviewer writes `APPROVED` to `../status.tmp`, the stage exits early
+4. Otherwise continues for up to `max-rounds`
+
+All Claude Code output is logged as JSONL to `logs/` (e.g. `build-worker-r1.jsonl`, `design-designer-r2.jsonl`).
 
 ## What's on the VPS
 
 The NixOS config (`configuration.nix`) includes:
 
-- claude-code, git, gh, curl, jq, ripgrep, fd, tree, btop, vim
+- claude-code, supabase-cli, git, gh, curl, jq, ripgrep, fd, tree, btop, vim
 - python3, nodejs 22, bun, yarn, go, gcc, gnumake, pkg-config, openssl
 - nix-ld for FHS binary compat
 - SSH root login (pubkey only)
