@@ -33,7 +33,27 @@ Public codebase managing infrastructure credentials. Single user (the developer)
 - Session persists across browser restart (user stays logged in)
 - PWA manifest and service worker are correctly configured for Android
 
-### Build & deploy
+### Build & deploy — STRICT, BLOCKING requirements
+
+Do NOT write `APPROVED` to `review-log.md` unless ALL of the following are verified. These are hard gates, not suggestions.
+
+#### GitHub
+- Code is pushed to a public GitHub repo via `gh repo create`
+- Verify with `gh repo view` — the repo must exist and contain the latest commit
+- `.github/workflows/test.yml` is present and runs tests on push
+
+#### Vercel
+- App is deployed to Vercel via `npx vercel --prod`
+- Verify by curling the production URL — it must return a 200 status
+- The deployed URL is recorded in the README
+
+#### Supabase
+- A Supabase project is created and linked (check with `npx supabase projects list` or equivalent)
+- Auth is configured (email/password provider enabled)
+- Database has the required table for encrypted token storage
+- Supabase URL and anon key are set as environment variables in Vercel
+
+#### General
 - `npm run build` succeeds with no errors
 - No TypeScript errors
-- GitHub Actions workflow runs tests on push
+- All tests pass

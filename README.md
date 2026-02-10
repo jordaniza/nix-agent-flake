@@ -9,7 +9,7 @@ Scaffolding for running multi-agent workflows on ephemeral Hetzner VPS instances
 Each task runs on a fresh VPS with agent roles defined in `personas/`:
 
 - **Worker** — executes the task, writes deliverables to `output/`, documents progress in `summary.md`
-- **Reviewer** — scrutinizes output, fact-checks claims, writes feedback. Writes `APPROVED` to `status.tmp` when satisfied
+- **Reviewer** — scrutinizes output, fact-checks claims, writes feedback. Writes `APPROVED` to `review-log.md` when satisfied
 - **Designer** — creates a design spec, then refines UI/UX in output files. Backs up originals
 - **Editor** — refines tone, readability, and formatting without changing meaning
 
@@ -123,7 +123,7 @@ See `tasks/SKY/` and `tasks/CRV/` for examples.
 The `personas/` directory contains role definitions deployed as `CLAUDE.md` files:
 
 - **WORKER.md** — executes tasks, writes to `output/`, appends to `summary.md`, implements reviewer feedback
-- **REVIEWER.md** — reads output, fact-checks, writes feedback to the primary agent's `review.md`, writes `APPROVED` to `status.tmp` when satisfied
+- **REVIEWER.md** — reads output, fact-checks, writes feedback to the primary agent's `review.md`, writes `APPROVED` to `review-log.md` and appends deliverables manifest when satisfied
 - **DESIGNER.md** — creates design spec (persona, principles, visual direction), refines output for UI/UX, backs up originals
 - **EDITOR.md** — edits output for tone/readability, backs up originals to `backups/`, logs changes in `edit-log.md`
 
@@ -133,7 +133,7 @@ The `personas/` directory contains role definitions deployed as `CLAUDE.md` file
 
 1. First agent (doer) runs in its directory, reads `CLAUDE.md` and `../task.md`, does its work
 2. Second agent (reviewer) runs in its directory, examines output, writes feedback
-3. If the reviewer writes `APPROVED` to `../status.tmp`, the stage exits early
+3. If the reviewer writes `APPROVED` to `review-log.md`, the stage exits early
 4. Otherwise continues for up to `max-rounds`
 
 All Claude Code output is logged as JSONL to `logs/` (e.g. `build-worker-r1.jsonl`, `design-designer-r2.jsonl`).

@@ -15,7 +15,7 @@ This repo is scaffolding for running multi-agent workflows on ephemeral Hetzner 
 │
 ├── personas/                 # Agent role definitions (deployed as CLAUDE.md on VPS)
 │   ├── WORKER.md             # Executes tasks, writes output, documents in summary.md
-│   ├── REVIEWER.md           # Fact-checks, writes feedback, approves via status.tmp
+│   ├── REVIEWER.md           # Fact-checks, writes feedback, approves via review-log.md
 │   ├── DESIGNER.md           # Refines UI/UX, creates design spec, modifies output
 │   └── EDITOR.md             # Refines tone/readability, never changes meaning
 │
@@ -56,7 +56,7 @@ build 5 worker reviewer
 design 3 designer reviewer
 ```
 
-For each stage, `run.sh` runs a feedback loop: the first agent (doer) works, the second agent (reviewer) checks it. If the second agent writes `APPROVED` to `../status.tmp`, the stage exits early. Otherwise it runs for the full round count.
+For each stage, `run.sh` runs a feedback loop: the first agent (doer) works, the second agent (reviewer) checks it. If the second agent writes `APPROVED` to `review-log.md`, the stage exits early. Otherwise it runs for the full round count. Progress is tracked in `state.log` (one line per completed round), enabling resume on re-run.
 
 All agents run with `claude --dangerously-skip-permissions` and log full JSONL to `logs/`.
 
@@ -88,7 +88,7 @@ All agents run with `claude --dangerously-skip-permissions` and log full JSONL t
 
 **Worker** (`personas/WORKER.md`): Does the work. Reads task.md, writes deliverables to `../output/`, appends decisions and progress to `summary.md`. If review.md exists, implements the requested changes.
 
-**Reviewer** (`personas/REVIEWER.md`): Quality gate. Reads task.md, the primary agent's summary.md, and everything in output/. Fact-checks links, verifies claims, checks that code runs. Appends private findings to `review-log.md`, actionable feedback to the primary agent's `review.md`. Writes `APPROVED` to `../status.tmp` when satisfied. Never modifies files in `output/`.
+**Reviewer** (`personas/REVIEWER.md`): Quality gate. Reads task.md, the primary agent's summary.md, and everything in output/. Fact-checks links, verifies claims, checks that code runs. Appends private findings to `review-log.md`, actionable feedback to the primary agent's `review.md`. Writes `APPROVED` to `review-log.md` and appends a deliverables manifest to `../deliverables.md` when satisfied. Never modifies files in `output/`.
 
 **Designer** (`personas/DESIGNER.md`): Product designer. Creates a design spec (target persona, design principles, visual direction), then refines output files for UI/UX quality. Backs up originals before modifying. Every change traces back to a design principle.
 
@@ -136,7 +136,8 @@ TASK         ?= SKY                # Default task name
 - All agent logs are append-only (summary.md, review.md, review-log.md, design-log.md, edit-log.md)
 - Deliverables always go in `output/`
 - Designer and editor back up originals to `output/backups/` before modifying
-- Reviewer/designer signal approval by writing `APPROVED` to `../status.tmp`
+- Reviewer signals approval by writing `APPROVED` to `review-log.md` and appending to `../deliverables.md`
+- `state.log` tracks completed rounds for resume support (`stage:round [approved|exhausted]`)
 - JSONL logs capture full Claude Code interactions for audit (named `stage-agent-rN.jsonl`)
 - Servers are tracked in `agents.md` (auto-managed, don't edit manually)
 - Results fetched to `./results/<TASK>/`

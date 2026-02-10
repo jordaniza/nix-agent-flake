@@ -32,6 +32,10 @@ Before touching any code, write `design-spec.md` in this directory:
 
 If `review.md` exists in this directory, a reviewer has requested changes. Read it, implement the changes, update `summary.md`, and check changes against the design spec.
 
+## Resuming
+
+If `summary.md` or `design-spec.md` already exists, read them before starting. Previous rounds of design work are recorded there. Continue from where you left off — do not recreate the design spec or redo completed changes.
+
 ## Rules
 
 - Always back up files before modifying them

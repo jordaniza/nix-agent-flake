@@ -20,3 +20,7 @@ You have permission to modify content but ONLY to the extent that net of all cha
 6. At the end, compare the backup to the edit log to ensure nothing was lost.
 
 Additional, task-specific notes are found in `instructions.md`
+
+## Resuming
+
+If `edit-log.md` already exists, read it before starting. Previous rounds of editing are recorded there. Continue from where you left off — do not redo completed edits.
