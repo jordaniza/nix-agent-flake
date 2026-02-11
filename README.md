@@ -58,6 +58,8 @@ Run `make help` to see all commands:
   fetch-results     Pull output files from the server
   fetch-all         Pull entire task directory including all agent logs
   fetch-logs        Pull just the logs directory
+  feedback          Send feedback.md to agents (TO=persona targets one agent)
+  reset-stage       Reset a stage and all after it so they re-run (STAGE=backend)
   deploy            Tear down existing server (if any), provision, install NixOS, and push task
   rebuild           Teardown and redeploy from scratch
   teardown          Delete the server
@@ -121,6 +123,27 @@ make run TASK=MYTASK
 ```
 
 See `tasks/SKY/`, `tasks/CRV/`, and `tasks/DELEGATION/` for examples.
+
+## Sending feedback mid-run
+
+Write a `feedback.md` in your task directory, then send it:
+
+```bash
+# Broadcast to all agents via log.md:
+make feedback TASK=DELEGATION
+
+# Target a specific agent's review.md:
+make feedback TASK=DELEGATION TO=backend
+```
+
+If a stage has already completed, reset it first:
+
+```bash
+make reset-stage TASK=DELEGATION STAGE=backend   # clears backend + all stages after it
+make run TASK=DELEGATION                          # re-runs from backend
+```
+
+`tail-logs` stays running after the pipeline completes, so you can reset and re-run without restarting it.
 
 ## Execution loop (`run.sh`)
 

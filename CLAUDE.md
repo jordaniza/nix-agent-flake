@@ -139,6 +139,24 @@ Personas are either **doers** (produce output) or **reviewers** (verify and appr
 
 **DELEGATION** (`tasks/DELEGATION/`): Indexing service for delegate voting breakdowns in Aragon's ve-governance system. 5-stage pipeline: spec writing, editorial polish, backend API with Supabase caching, interactive frontend, design pass.
 
+## Sending feedback mid-run
+
+Write a `feedback.md` in the task directory (`tasks/<TASK>/feedback.md`), then:
+
+```bash
+make feedback TASK=MYTASK              # appends to log.md (all agents see it)
+make feedback TASK=MYTASK TO=backend   # appends to backend/review.md
+```
+
+If a stage is already complete, reset it and everything after it:
+
+```bash
+make reset-stage TASK=MYTASK STAGE=backend
+make run TASK=MYTASK
+```
+
+`tail-logs` does not exit when the pipeline completes — it keeps tailing so you can reset and re-run without restarting it.
+
 ## Key Makefile variables
 
 ```makefile

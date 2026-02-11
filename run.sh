@@ -131,7 +131,7 @@ while read -r stage max_rounds agents_str <&3; do
       lines_before=$(wc -l < "$TASK_DIR/$feedback/review-log.md" 2>/dev/null || echo 0)
       run_claude "$feedback" "$TASK_DIR/$feedback" "${stage}-${feedback}-r${round}"
 
-      if tail -n +"$((lines_before + 1))" "$TASK_DIR/$feedback/review-log.md" 2>/dev/null | grep -q "^APPROVED"; then
+      if tail -n +"$((lines_before + 1))" "$TASK_DIR/$feedback/review-log.md" 2>/dev/null | grep -qE '^[[:space:]#*>-]*APPROVED'; then
         log "=== $stage approved on round $round ==="
         echo "${stage}:${round} approved" >> "$STATE_LOG"
         approved=true

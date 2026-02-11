@@ -90,11 +90,13 @@ while true; do
     fi
   done
 
-  # --- exit when pipeline finishes ---
+  # --- notify when pipeline finishes, but keep tailing ---
   if [ -f "$LOG_DIR/run.log" ] && grep -q "Pipeline completed" "$LOG_DIR/run.log" 2>/dev/null; then
-    echo ""
-    echo "Pipeline completed."
-    exit 0
+    if [ "${NOTIFIED_COMPLETE:-0}" -eq 0 ]; then
+      echo ""
+      echo "Pipeline completed. Still tailing (Ctrl+C to stop)..."
+      NOTIFIED_COMPLETE=1
+    fi
   fi
 
   sleep "$POLL"

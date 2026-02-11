@@ -7,7 +7,7 @@ FLAKE        ?= .\#agent
 TASK         ?= SKY
 
 # Prompt for server name when a target needs it and SERVER wasn't passed
-NEEDS_SERVER := provision install connect setup-task fetch-results fetch-all fetch-logs deploy rebuild teardown run tail-logs
+NEEDS_SERVER := provision install connect setup-task fetch-results fetch-all fetch-logs deploy rebuild teardown run tail-logs feedback reset-stage
 
 ifneq ($(filter $(NEEDS_SERVER),$(MAKECMDGOALS)),)
 ifndef SERVER
@@ -33,7 +33,7 @@ SSH_OPTS      = -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 SCP           = scp -i $(SSH_KEY) $(SSH_OPTS)
 SSH           = ssh -i $(SSH_KEY) $(SSH_OPTS)
 
-.PHONY: help list status ssh-keygen _sync provision install connect setup-task fetch-results fetch-all fetch-logs teardown deploy rebuild run tail-logs
+.PHONY: help list status ssh-keygen _sync provision install connect setup-task fetch-results fetch-all fetch-logs teardown deploy rebuild run tail-logs feedback reset-stage
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -91,6 +91,35 @@ run: ## Run the pipeline remotely (TASK=SKY)
 
 tail-logs: ## Stream live agent output from the server (POLL=2)
 	@./tail-logs.sh $(REMOTE) $(SSH_KEY) "$(SSH_OPTS)" $(TASK) $(or $(POLL),2)
+
+feedback: ## Send feedback.md to agents (TO=persona targets one agent, otherwise goes to log.md)
+	@FEEDBACK="tasks/$(TASK)/feedback.md"; \
+	if [ ! -f "$$FEEDBACK" ]; then echo "No $$FEEDBACK found" >&2; exit 1; fi; \
+	if [ -n "$(TO)" ]; then \
+		echo "Sending $$FEEDBACK → $(TO)/review.md"; \
+		$(SSH) $(REMOTE) "cat >> ~/tasks/$(TASK)/$(TO)/review.md" < "$$FEEDBACK"; \
+	else \
+		echo "Sending $$FEEDBACK → log.md"; \
+		printf '\n---\n## Human Feedback\n' | $(SSH) $(REMOTE) "cat >> ~/tasks/$(TASK)/log.md"; \
+		$(SSH) $(REMOTE) "cat >> ~/tasks/$(TASK)/log.md" < "$$FEEDBACK"; \
+	fi; \
+	echo "Sent."
+
+reset-stage: ## Reset a stage and all after it so they re-run (STAGE=backend)
+	@if [ -z "$(STAGE)" ]; then echo "Usage: make reset-stage TASK=X STAGE=backend" >&2; exit 1; fi
+	@echo "Resetting '$(STAGE)' and all subsequent stages for $(TASK)..."
+	$(SSH) $(REMOTE) "cd ~/tasks/$(TASK) && \
+		found=false; \
+		while read -r stage rest; do \
+			[ -z \"\$$stage\" ] && continue; \
+			case \"\$$stage\" in \\#*) continue;; esac; \
+			if [ \"\$$stage\" = \"$(STAGE)\" ]; then found=true; fi; \
+			if [ \"\$$found\" = true ]; then \
+				sed -i \"/^\$${stage}:/d\" state.log; \
+				echo \"  cleared: \$$stage\"; \
+			fi; \
+		done < pipeline; \
+		echo '---'; cat state.log"
 
 deploy: _register ## Tear down existing server (if any), provision, install NixOS, and push task
 	@hcloud server describe $(SERVER) >/dev/null 2>&1 && \
