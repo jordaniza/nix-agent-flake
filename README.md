@@ -6,19 +6,31 @@ Scaffolding for running multi-agent workflows on ephemeral Hetzner VPS instances
 
 ## How it works
 
-Each task runs on a fresh VPS with agent roles defined in `personas/`:
+Each task runs on a fresh VPS with agent roles defined in `personas/`. Personas are either **doers** (produce output) or **reviewers** (verify and approve):
 
-- **Worker** — executes the task, writes deliverables to `output/`, documents progress in `summary.md`
-- **Reviewer** — scrutinizes output, fact-checks claims, writes feedback. Writes `APPROVED` to `review-log.md` when satisfied
-- **Designer** — creates a design spec, then refines UI/UX in output files. Backs up originals
+**Doers:**
+- **Worker** — generic task executor
+- **Spec Writer** — writes technical specifications from source code
+- **Backend** — backend developer (APIs, data pipelines, deployment)
+- **Frontend** — frontend developer (interactive web interfaces)
+- **Designer** — creates a design spec, refines UI/UX in output files
 - **Editor** — refines tone, readability, and formatting without changing meaning
+
+**Reviewers:**
+- **Reviewer** — generic quality gate (fact-checks, verifies builds/tests)
+- **Spec Reviewer** — verifies specifications against source code and contracts
 
 A `pipeline` file defines stages. Each stage pairs two agents in a feedback loop (or runs one agent solo). Example:
 
 ```
-build 5 worker reviewer
+spec 5 specwriter specreviewer
+backend 10 backend reviewer
 design 3 designer reviewer
 ```
+
+Agent names in the pipeline match the lowercase filename (without `.md`) of a persona in `personas/`.
+
+All agents coordinate via a shared `log.md` at the task root. Each agent reads it for context and appends a summary after their work. Reviewers write feedback to the doer's `review.md`.
 
 ## Quick start
 
@@ -81,33 +93,25 @@ make provision SERVER=agent-02 SERVER_TYPE=cx32
 
 ```
 ~/tasks/<TASK>/
-├── task.md                          # main task brief (from tasks/<TASK>/worker.md)
-├── pipeline                         # stage definitions (from tasks/<TASK>/pipeline)
-├── output/                          # shared output directory for deliverables
+├── task.md                          # from tasks/<TASK>/task.md (or worker.md)
+├── pipeline                         # stage definitions
+├── log.md                           # shared project log (created by run.sh)
+├── output/                          # shared deliverables directory
 ├── logs/                            # JSONL execution logs (stage-agent-rN.jsonl)
-├── worker/
-│   ├── CLAUDE.md                    # from personas/WORKER.md
-│   └── instructions.md              # from tasks/<TASK>/worker.md (if exists)
-├── reviewer/
-│   ├── CLAUDE.md                    # from personas/REVIEWER.md
-│   └── instructions.md              # from tasks/<TASK>/reviewer.md (if exists)
-├── designer/
-│   ├── CLAUDE.md                    # from personas/DESIGNER.md
-│   └── instructions.md              # from tasks/<TASK>/designer.md (if exists)
-└── editor/
-    ├── CLAUDE.md                    # from personas/EDITOR.md
-    └── instructions.md              # from tasks/<TASK>/editor.md (if exists)
+└── <persona>/                       # one per persona in personas/
+    ├── CLAUDE.md                    # from personas/<PERSONA>.md
+    └── instructions.md              # from tasks/<TASK>/<persona>.md (if exists)
 ```
+
+Agents create additional files during execution: `summary.md` (doers), `review-log.md` (reviewers), `review.md` (written by reviewers into the doer's directory).
 
 ## Creating a new task
 
 Create a directory `tasks/<TASK>/` with:
 
 - `pipeline` — stage definitions (one line per stage: `name max-rounds agent1 agent2`)
-- `worker.md` — the main task brief (deliverables, sources, quality criteria)
-- `reviewer.md` — task-specific review instructions (what to verify, how to fact-check)
-- `designer.md` — task-specific design criteria (optional)
-- `editor.md` — task-specific editorial guidance (optional)
+- `task.md` — shared task brief read by all agents (falls back to `worker.md` if no `task.md`)
+- `<persona>.md` — task-specific instructions per persona (optional, copied as `instructions.md`)
 
 Then deploy and run:
 
@@ -116,27 +120,19 @@ make deploy TASK=MYTASK
 make run TASK=MYTASK
 ```
 
-See `tasks/SKY/` and `tasks/CRV/` for examples.
-
-## Personas
-
-The `personas/` directory contains role definitions deployed as `CLAUDE.md` files:
-
-- **WORKER.md** — executes tasks, writes to `output/`, appends to `summary.md`, implements reviewer feedback
-- **REVIEWER.md** — reads output, fact-checks, writes feedback to the primary agent's `review.md`, writes `APPROVED` to `review-log.md` and appends deliverables manifest when satisfied
-- **DESIGNER.md** — creates design spec (persona, principles, visual direction), refines output for UI/UX, backs up originals
-- **EDITOR.md** — edits output for tone/readability, backs up originals to `backups/`, logs changes in `edit-log.md`
+See `tasks/SKY/`, `tasks/CRV/`, and `tasks/DELEGATION/` for examples.
 
 ## Execution loop (`run.sh`)
 
 `run.sh` reads the `pipeline` file and executes stages sequentially. Each stage pairs two agents in a feedback loop:
 
-1. First agent (doer) runs in its directory, reads `CLAUDE.md` and `../task.md`, does its work
-2. Second agent (reviewer) runs in its directory, examines output, writes feedback
-3. If the reviewer writes `APPROVED` to `review-log.md`, the stage exits early
-4. Otherwise continues for up to `max-rounds`
+1. `run.sh` writes a stage/round header to `log.md`
+2. First agent (doer) runs in its directory, reads `CLAUDE.md` and `../task.md`, does its work, appends to `../log.md`
+3. Second agent (reviewer) runs in its directory, reads `../log.md` to find the doer, examines output, writes feedback to the doer's `review.md`, appends to `../log.md`
+4. If the reviewer writes `APPROVED` to `review-log.md`, the stage exits early
+5. Otherwise continues for up to `max-rounds`
 
-All Claude Code output is logged as JSONL to `logs/` (e.g. `build-worker-r1.jsonl`, `design-designer-r2.jsonl`).
+All Claude Code output is logged as JSONL to `logs/` (e.g. `spec-specwriter-r1.jsonl`, `backend-reviewer-r2.jsonl`).
 
 ## What's on the VPS
 

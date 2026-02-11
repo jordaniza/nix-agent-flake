@@ -14,18 +14,21 @@ This repo is scaffolding for running multi-agent workflows on ephemeral Hetzner 
 ├── .env.template             # Required env vars for service credentials
 │
 ├── personas/                 # Agent role definitions (deployed as CLAUDE.md on VPS)
-│   ├── WORKER.md             # Executes tasks, writes output, documents in summary.md
-│   ├── REVIEWER.md           # Fact-checks, writes feedback, approves via review-log.md
+│   ├── WORKER.md             # Generic worker — executes tasks, writes output
+│   ├── REVIEWER.md           # Generic reviewer — fact-checks, approves via review-log.md
+│   ├── SPECWRITER.md         # Writes technical specifications from source code
+│   ├── SPECREVIEWER.md       # Reviews specs against source code and contracts
+│   ├── BACKEND.md            # Backend developer — APIs, data pipelines, deployment
+│   ├── FRONTEND.md           # Frontend developer — interactive web interfaces
 │   ├── DESIGNER.md           # Refines UI/UX, creates design spec, modifies output
 │   └── EDITOR.md             # Refines tone/readability, never changes meaning
 │
 ├── tasks/                    # One directory per task
 │   └── <TASK>/
 │       ├── pipeline           # Stage definitions (plain text, one line per stage)
-│       ├── worker.md          # Main task brief, deliverables, quality criteria
-│       ├── reviewer.md        # Task-specific review instructions
-│       ├── designer.md        # Task-specific design criteria (optional)
-│       └── editor.md          # Task-specific editorial guidance (optional)
+│       ├── task.md            # Shared task brief (falls back to worker.md)
+│       ├── <persona>.md       # Task-specific instructions per persona (optional)
+│       └── ...                # e.g. specwriter.md, reviewer.md, editor.md
 │
 ├── results/                  # Fetched outputs from completed runs (gitignored)
 │
@@ -52,9 +55,12 @@ All commands go through the Makefile. The typical flow:
 `run.sh` runs on the VPS. It reads `pipeline` to determine stages. Each stage defines a pair of agents and a max round count. The pipeline file is plain text, one line per stage:
 
 ```
-build 5 worker reviewer
+spec 5 specwriter specreviewer
+backend 10 backend reviewer
 design 3 designer reviewer
 ```
+
+Agent names in the pipeline must match the lowercase filename (without `.md`) of a persona in `personas/`.
 
 For each stage, `run.sh` runs a feedback loop: the first agent (doer) works, the second agent (reviewer) checks it. If the second agent writes `APPROVED` to `review-log.md`, the stage exits early. Otherwise it runs for the full round count. Progress is tracked in `state.log` (one line per completed round), enabling resume on re-run.
 
@@ -66,31 +72,18 @@ All agents run with `claude --dangerously-skip-permissions` and log full JSONL t
 
 ```
 ~/tasks/<TASK>/
-├── task.md                    # Copied from tasks/<TASK>/worker.md
+├── task.md                    # Copied from tasks/<TASK>/task.md (or worker.md)
 ├── pipeline                   # Copied from tasks/<TASK>/pipeline
 ├── log.md                     # Shared project log — all agents append here
 ├── output/                    # Shared deliverables directory
 ├── logs/                      # JSONL execution logs (stage-agent-rN.jsonl)
-├── worker/
-│   ├── CLAUDE.md              # Copied from personas/WORKER.md
-│   ├── instructions.md        # Copied from tasks/<TASK>/worker.md (if exists)
-│   ├── summary.md             # Private work log (created by agent)
-│   └── review.md              # Feedback from reviewer (created by reviewer)
-├── reviewer/
-│   ├── CLAUDE.md              # Copied from personas/REVIEWER.md
-│   ├── instructions.md        # Copied from tasks/<TASK>/reviewer.md (if exists)
-│   └── review-log.md          # Private review scratchpad (created by agent)
-├── designer/
-│   ├── CLAUDE.md              # Copied from personas/DESIGNER.md
-│   ├── instructions.md        # Copied from tasks/<TASK>/designer.md (if exists)
-│   ├── summary.md             # Private work log (created by agent)
-│   ├── design-spec.md         # Design specification (created by agent)
-│   └── review.md              # Feedback from reviewer (created by reviewer)
-└── editor/
-    ├── CLAUDE.md              # Copied from personas/EDITOR.md
-    ├── instructions.md        # Copied from tasks/<TASK>/editor.md (if exists)
-    ├── edit-log.md            # Private edit log (created by agent)
-    └── review.md              # Feedback from reviewer (created by reviewer)
+├── <persona>/                  # One directory per persona in personas/
+│   ├── CLAUDE.md              # Copied from personas/<PERSONA>.md
+│   ├── instructions.md        # Copied from tasks/<TASK>/<persona>.md (if exists)
+│   ├── summary.md             # Private work log (created by doer agents)
+│   ├── review.md              # Feedback from reviewer (created by reviewer agents)
+│   └── review-log.md          # Private review scratchpad (reviewer agents only)
+└── ...
 ```
 
 ### Coordination: log.md
@@ -103,22 +96,34 @@ The reviewer writes `review.md` into the **doer's** directory (e.g. `../designer
 
 ### Agent roles
 
-**Worker** (`personas/WORKER.md`): Does the work. Reads task.md, writes deliverables to `../output/`, appends decisions and progress to `summary.md`. Reads review.md for feedback. Appends summary to `../log.md`.
+Personas are either **doers** (produce output) or **reviewers** (verify and approve). Any persona can be paired with any other in the pipeline.
 
-**Reviewer** (`personas/REVIEWER.md`): Quality gate. Reads `../log.md` to discover the current doer, then reads their summary.md and everything in output/. Fact-checks links, verifies claims, checks that code runs. Appends private findings to `review-log.md`, actionable feedback to the doer's `review.md`. Writes `APPROVED` to `review-log.md` and appends a deliverables manifest to `../deliverables.md` when satisfied. Never modifies files in `output/`. Appends summary to `../log.md`.
+#### Doers
 
-**Designer** (`personas/DESIGNER.md`): Product designer. Creates a design spec (target persona, design principles, visual direction), then refines output files for UI/UX quality. Backs up originals before modifying. Every change traces back to a design principle. Reads review.md for feedback. Appends summary to `../log.md`.
+**Worker** (`WORKER.md`): Generic task executor. Reads task.md, writes to `../output/`, documents in summary.md.
 
-**Editor** (`personas/EDITOR.md`): Formatting pass. Edits output files for tone, readability, and consistency. Backs up originals to `output/backups/`, logs changes in `edit-log.md`. Never changes meaning or removes information. Reads review.md for feedback. Appends summary to `../log.md`.
+**Spec Writer** (`SPECWRITER.md`): Writes technical specifications from source code. Reads repos and contracts, produces spec documents with diagrams, invariants, and edge case coverage.
+
+**Backend** (`BACKEND.md`): Backend developer. Builds services, APIs, and data pipelines from specifications. Writes tests alongside code, enforces invariants as assertions.
+
+**Frontend** (`FRONTEND.md`): Frontend developer. Builds interactive web interfaces. Works from the API and spec, uses real data, tests on desktop and mobile.
+
+**Designer** (`DESIGNER.md`): Product designer. Creates a design spec, then refines output files for UI/UX. Backs up originals before modifying. Every change traces back to a design principle.
+
+**Editor** (`EDITOR.md`): Editorial pass. Edits output for tone, readability, and consistency. Backs up originals, logs changes. Never changes meaning or removes information.
+
+#### Reviewers
+
+**Reviewer** (`REVIEWER.md`): Generic quality gate. Reads the doer's work and `../output/`, fact-checks, verifies code builds and tests pass. Writes feedback to the doer's `review.md`.
+
+**Spec Reviewer** (`SPECREVIEWER.md`): Specification reviewer. Verifies specs against actual source code — traces every claim to a function/event, checks edge cases, walks through invariants with concrete examples.
 
 ## Creating a new task
 
 1. Create a directory in `tasks/<TASK>/` with:
    - `pipeline` — stage definitions (one line per stage: `name max-rounds agent1 agent2`)
-   - `worker.md` — deliverables, sources, quality criteria
-   - `reviewer.md` — what to verify, how to fact-check
-   - `designer.md` — design criteria (optional, only if pipeline includes designer)
-   - `editor.md` — formatting, tone, conventions (optional, only if pipeline includes editor)
+   - `task.md` — shared task brief read by all agents (falls back to `worker.md` if no `task.md`)
+   - `<persona>.md` — task-specific instructions per persona (optional, copied as `instructions.md`)
 
 2. Deploy and run:
    ```bash
@@ -128,9 +133,11 @@ The reviewer writes `review.md` into the **doer's** directory (e.g. `../designer
 
 ### Example tasks
 
-**SKY** (`tasks/SKY-worker.md`): Apply Aragon's Ownership Token Framework to the SKY governance token. Deliverables: research report with sourced claims (contract addresses + GitHub line numbers), metrics JSON matching framework schema, source list, governance flow diagram.
+**SKY** (`tasks/SKY/`): Apply Aragon's Ownership Token Framework to the SKY governance token. Deliverables: research report with sourced claims (contract addresses + GitHub line numbers), metrics JSON matching framework schema, source list, governance flow diagram.
 
-**CRV** (`tasks/CRV-worker.md`): Build a static dashboard comparing CRV, veCRV, and cvxCRV. Deliverables: price chart, yield chart, hosted on port 80. Uses Python for data fetching and vanilla HTML/JS with CDN charting.
+**CRV** (`tasks/CRV/`): Build a static dashboard comparing CRV, veCRV, and cvxCRV. Deliverables: price chart, yield chart, hosted on port 80. Uses Python for data fetching and vanilla HTML/JS with CDN charting.
+
+**DELEGATION** (`tasks/DELEGATION/`): Indexing service for delegate voting breakdowns in Aragon's ve-governance system. 5-stage pipeline: spec writing, editorial polish, backend API with Supabase caching, interactive frontend, design pass.
 
 ## Key Makefile variables
 

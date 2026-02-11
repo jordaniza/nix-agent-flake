@@ -15,7 +15,12 @@ TASK_DIR="~/tasks/$TASK"
 $SSH "$REMOTE" "mkdir -p $TASK_DIR/{output,logs}"
 
 # Copy shared task brief and pipeline
-$SCP "tasks/${TASK}/worker.md" "$REMOTE:$TASK_DIR/task.md"
+# task.md is the shared brief: use task.md if it exists, fall back to worker.md
+if [ -f "tasks/${TASK}/task.md" ]; then
+  $SCP "tasks/${TASK}/task.md" "$REMOTE:$TASK_DIR/task.md"
+else
+  $SCP "tasks/${TASK}/worker.md" "$REMOTE:$TASK_DIR/task.md"
+fi
 $SCP "tasks/${TASK}/pipeline" "$REMOTE:$TASK_DIR/pipeline"
 
 # Create one directory per persona, copy CLAUDE.md and optional instructions
