@@ -18,8 +18,10 @@ if [ ! -f "$PIPELINE" ]; then
 fi
 
 mkdir -p "$LOG_DIR"
+SHARED_LOG="$TASK_DIR/log.md"
 
 log() { echo "[$(date +%H:%M:%S)] $*" | tee -a "$LOG_DIR/run.log"; }
+slog() { echo "$*" >> "$SHARED_LOG"; }
 
 run_claude() {
   local role="$1" dir="$2" logname="$3"
@@ -106,6 +108,9 @@ while read -r stage max_rounds agents_str <&3; do
 
   if [ ${#agents[@]} -eq 1 ]; then
     log "=== $stage: ${agents[0]} (solo) ==="
+    slog ""
+    slog "---"
+    slog "## Stage: $stage — ${agents[0]} (solo)"
     run_claude "${agents[0]}" "$TASK_DIR/${agents[0]}" "${stage}-${agents[0]}-r1"
     echo "${stage}:1 approved" >> "$STATE_LOG"
   else
@@ -114,6 +119,11 @@ while read -r stage max_rounds agents_str <&3; do
     approved=false
 
     for round in $(seq "$start_round" "$max_rounds"); do
+      slog ""
+      slog "---"
+      slog "## Stage: $stage — Round $round/$max_rounds"
+      slog "Doer: **$primary** | Reviewer: **$feedback**"
+
       log "=== $stage round $round/$max_rounds: $primary ==="
       run_claude "$primary" "$TASK_DIR/$primary" "${stage}-${primary}-r${round}"
 

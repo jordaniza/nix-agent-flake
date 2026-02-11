@@ -68,31 +68,48 @@ All agents run with `claude --dangerously-skip-permissions` and log full JSONL t
 ~/tasks/<TASK>/
 ├── task.md                    # Copied from tasks/<TASK>/worker.md
 ├── pipeline                   # Copied from tasks/<TASK>/pipeline
+├── log.md                     # Shared project log — all agents append here
 ├── output/                    # Shared deliverables directory
 ├── logs/                      # JSONL execution logs (stage-agent-rN.jsonl)
 ├── worker/
 │   ├── CLAUDE.md              # Copied from personas/WORKER.md
-│   └── instructions.md        # Copied from tasks/<TASK>/worker.md (if exists)
+│   ├── instructions.md        # Copied from tasks/<TASK>/worker.md (if exists)
+│   ├── summary.md             # Private work log (created by agent)
+│   └── review.md              # Feedback from reviewer (created by reviewer)
 ├── reviewer/
 │   ├── CLAUDE.md              # Copied from personas/REVIEWER.md
-│   └── instructions.md        # Copied from tasks/<TASK>/reviewer.md (if exists)
+│   ├── instructions.md        # Copied from tasks/<TASK>/reviewer.md (if exists)
+│   └── review-log.md          # Private review scratchpad (created by agent)
 ├── designer/
 │   ├── CLAUDE.md              # Copied from personas/DESIGNER.md
-│   └── instructions.md        # Copied from tasks/<TASK>/designer.md (if exists)
+│   ├── instructions.md        # Copied from tasks/<TASK>/designer.md (if exists)
+│   ├── summary.md             # Private work log (created by agent)
+│   ├── design-spec.md         # Design specification (created by agent)
+│   └── review.md              # Feedback from reviewer (created by reviewer)
 └── editor/
     ├── CLAUDE.md              # Copied from personas/EDITOR.md
-    └── instructions.md        # Copied from tasks/<TASK>/editor.md (if exists)
+    ├── instructions.md        # Copied from tasks/<TASK>/editor.md (if exists)
+    ├── edit-log.md            # Private edit log (created by agent)
+    └── review.md              # Feedback from reviewer (created by reviewer)
 ```
+
+### Coordination: log.md
+
+`log.md` is the shared project log at the task root. `run.sh` writes stage/round headers before each agent runs. Every agent reads it for full context and appends a brief summary after their work. This is how agents discover what other agents have done across stages — the reviewer reads it to find who the current doer is, the designer reads it to see what the worker built, etc.
+
+Private detailed logs stay in each agent's directory (summary.md, review-log.md, design-spec.md, edit-log.md). The shared log contains high-level summaries with pointers to these details.
+
+The reviewer writes `review.md` into the **doer's** directory (e.g. `../designer/review.md` during the design stage), so feedback always lands where the doer will find it.
 
 ### Agent roles
 
-**Worker** (`personas/WORKER.md`): Does the work. Reads task.md, writes deliverables to `../output/`, appends decisions and progress to `summary.md`. If review.md exists, implements the requested changes.
+**Worker** (`personas/WORKER.md`): Does the work. Reads task.md, writes deliverables to `../output/`, appends decisions and progress to `summary.md`. Reads review.md for feedback. Appends summary to `../log.md`.
 
-**Reviewer** (`personas/REVIEWER.md`): Quality gate. Reads task.md, the primary agent's summary.md, and everything in output/. Fact-checks links, verifies claims, checks that code runs. Appends private findings to `review-log.md`, actionable feedback to the primary agent's `review.md`. Writes `APPROVED` to `review-log.md` and appends a deliverables manifest to `../deliverables.md` when satisfied. Never modifies files in `output/`.
+**Reviewer** (`personas/REVIEWER.md`): Quality gate. Reads `../log.md` to discover the current doer, then reads their summary.md and everything in output/. Fact-checks links, verifies claims, checks that code runs. Appends private findings to `review-log.md`, actionable feedback to the doer's `review.md`. Writes `APPROVED` to `review-log.md` and appends a deliverables manifest to `../deliverables.md` when satisfied. Never modifies files in `output/`. Appends summary to `../log.md`.
 
-**Designer** (`personas/DESIGNER.md`): Product designer. Creates a design spec (target persona, design principles, visual direction), then refines output files for UI/UX quality. Backs up originals before modifying. Every change traces back to a design principle.
+**Designer** (`personas/DESIGNER.md`): Product designer. Creates a design spec (target persona, design principles, visual direction), then refines output files for UI/UX quality. Backs up originals before modifying. Every change traces back to a design principle. Reads review.md for feedback. Appends summary to `../log.md`.
 
-**Editor** (`personas/EDITOR.md`): Formatting pass. Edits output files for tone, readability, and consistency. Backs up originals to `backups/`, logs changes in `edit-log.md`. Never changes meaning or removes information.
+**Editor** (`personas/EDITOR.md`): Formatting pass. Edits output files for tone, readability, and consistency. Backs up originals to `output/backups/`, logs changes in `edit-log.md`. Never changes meaning or removes information. Reads review.md for feedback. Appends summary to `../log.md`.
 
 ## Creating a new task
 
@@ -133,7 +150,9 @@ TASK         ?= SKY                # Default task name
 
 ## Conventions
 
-- All agent logs are append-only (summary.md, review.md, review-log.md, design-log.md, edit-log.md)
+- `log.md` is the shared project ledger — all agents append, none overwrite. `run.sh` writes stage headers
+- Private agent logs are append-only (summary.md, review-log.md, edit-log.md, etc.)
+- Reviewer writes `review.md` to the doer's directory, not its own
 - Deliverables always go in `output/`
 - Designer and editor back up originals to `output/backups/` before modifying
 - Reviewer signals approval by writing `APPROVED` to `review-log.md` and appending to `../deliverables.md`
