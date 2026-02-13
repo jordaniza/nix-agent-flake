@@ -1,0 +1,4 @@
+spec 5 specwriter specreviewer
+backend 10 backend reviewer
+frontend 8 frontend reviewer
+design 3 designer reviewer

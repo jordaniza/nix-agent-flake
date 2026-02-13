@@ -2,4 +2,4 @@
 
 | Server | Task | Created |
 |--------|------|---------|
-| agent-01 | HCLOUD | 2026-02-07 |
+| agent-02 | MACRO | 2026-02-11 |

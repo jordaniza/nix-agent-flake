@@ -86,8 +86,9 @@ fetch-logs: ## Pull just the logs directory
 	mkdir -p ./results/$(TASK)/logs
 	rsync -avz -e 'ssh -i $(SSH_KEY) $(SSH_OPTS)' $(REMOTE):~/tasks/$(TASK)/logs/ ./results/$(TASK)/logs/
 
-run: ## Run the pipeline remotely (TASK=SKY)
-	$(SSH) $(REMOTE) "~/run.sh $(TASK)"
+run: ## Run the pipeline remotely (detaches, survives disconnect)
+	$(SSH) $(REMOTE) "nohup ~/run.sh $(TASK) >> ~/tasks/$(TASK)/logs/run.log 2>&1 & echo \$$!"
+	@echo "Pipeline started. Use 'make tail-logs' to follow."
 
 tail-logs: ## Stream live agent output from the server (POLL=2)
 	@./tail-logs.sh $(REMOTE) $(SSH_KEY) "$(SSH_OPTS)" $(TASK) $(or $(POLL),2)

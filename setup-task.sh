@@ -6,43 +6,48 @@ REMOTE="$2"
 SSH_KEY="$3"
 
 SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-SCP="scp -i $SSH_KEY $SSH_OPTS"
 SSH="ssh -i $SSH_KEY $SSH_OPTS"
 
 TASK_DIR="~/tasks/$TASK"
 
-# Create base directories
-$SSH "$REMOTE" "mkdir -p $TASK_DIR/{output,logs}"
+# Build the remote directory layout in a local staging dir
+STAGING=$(mktemp -d)
+trap "rm -rf $STAGING" EXIT
 
-# Copy shared task brief and pipeline
-# task.md is the shared brief: use task.md if it exists, fall back to worker.md
+mkdir -p "$STAGING"/{output,logs}
+
+# Shared task brief: use task.md if it exists, fall back to worker.md
 if [ -f "tasks/${TASK}/task.md" ]; then
-  $SCP "tasks/${TASK}/task.md" "$REMOTE:$TASK_DIR/task.md"
+  cp "tasks/${TASK}/task.md" "$STAGING/task.md"
 else
-  $SCP "tasks/${TASK}/worker.md" "$REMOTE:$TASK_DIR/task.md"
+  cp "tasks/${TASK}/worker.md" "$STAGING/task.md"
 fi
-$SCP "tasks/${TASK}/pipeline" "$REMOTE:$TASK_DIR/pipeline"
+cp "tasks/${TASK}/pipeline" "$STAGING/pipeline"
 
-# Create one directory per persona, copy CLAUDE.md and optional instructions
+# Per-persona directories with CLAUDE.md and optional instructions
 for f in personas/*.md; do
   role=$(basename "$f" .md | tr 'A-Z' 'a-z')
-  $SSH "$REMOTE" "mkdir -p $TASK_DIR/$role"
-  $SCP "$f" "$REMOTE:$TASK_DIR/$role/CLAUDE.md"
+  mkdir -p "$STAGING/$role"
+  cp "$f" "$STAGING/$role/CLAUDE.md"
 
   instructions="tasks/${TASK}/${role}.md"
   if [ -f "$instructions" ]; then
-    $SCP "$instructions" "$REMOTE:$TASK_DIR/$role/instructions.md"
+    cp "$instructions" "$STAGING/$role/instructions.md"
   fi
 done
 
-# Copy run script
-$SCP run.sh "$REMOTE:~/run.sh"
-$SSH "$REMOTE" "chmod +x ~/run.sh"
-
-# Copy credentials if available
+# Credentials
 if [ -f .env ]; then
-  $SCP .env "$REMOTE:$TASK_DIR/.env"
-  echo "Copied .env to VPS"
+  cp .env "$STAGING/.env"
 else
   echo "Warning: No .env file found. Agents will have no service credentials."
 fi
+
+# Single transfer: tar pipe over one SSH connection
+$SSH "$REMOTE" "mkdir -p $TASK_DIR"
+tar cf - -C "$STAGING" . | $SSH "$REMOTE" "tar xf - -C $TASK_DIR"
+
+# Run script lives at ~/run.sh (outside task dir) — one extra transfer
+cat run.sh | $SSH "$REMOTE" "cat > ~/run.sh && chmod +x ~/run.sh"
+
+echo "Task $TASK deployed to $REMOTE"
