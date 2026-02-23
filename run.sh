@@ -7,6 +7,15 @@ PIPELINE="$TASK_DIR/pipeline"
 LOG_DIR="$TASK_DIR/logs"
 STATE_LOG="$TASK_DIR/state.log"
 
+CHILD_PID=""
+cleanup() {
+  if [ -n "$CHILD_PID" ]; then
+    kill "$CHILD_PID" 2>/dev/null || true
+    wait "$CHILD_PID" 2>/dev/null || true
+  fi
+}
+trap cleanup EXIT TERM INT HUP
+
 if [ ! -d "$TASK_DIR" ]; then
   echo "Task directory not found: $TASK_DIR" >&2
   exit 1
@@ -52,7 +61,10 @@ run_claude() {
     | jq -rj 'select(.type == "assistant") | .message.content[]?
       | if .type == "text" then .text + "\n"
         elif .type == "tool_use" then "[tool: \(.name)] \(.input | tostring)\n"
-        else empty end' 2>/dev/null
+        else empty end' 2>/dev/null &
+  CHILD_PID=$!
+  wait "$CHILD_PID" || true
+  CHILD_PID=""
   echo ""
 
   touch "$started_file"
@@ -84,6 +96,7 @@ stage_status() {
 if [ -f "$STATE_LOG" ]; then
   log "=== Resuming from existing state.log ==="
   echo "resumed" >> "$STATE_LOG"
+  rm -f "$TASK_DIR"/.session-*.active
 fi
 
 # --- Pipeline execution ---

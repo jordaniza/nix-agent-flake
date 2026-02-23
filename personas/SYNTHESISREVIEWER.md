@@ -40,6 +40,36 @@ You review structured data synthesized from research. You check three things: ac
 - Not overly verbose — every sentence earns its place
 - Not overly terse — nothing substantive is sacrificed for brevity
 
+### Readability rubric
+
+- Summaries must be plain language first. Minimise protocol-specific jargon. If a term like "DSChief" must be used, explain it on first use or replace with plain English (e.g. "the governance contract (DSChief)")
+- Each metric entry follows this structure:
+  1. Plain language summary — what does the reader need to know? Lead with the conclusion.
+  2. Minimum sufficient evidence — from the exhaustive report, what's the smallest set of evidence that makes the case? Include only that.
+  3. Evidence links — specific, working, pointing to the right thing.
+- Walls of text = fail. Break into paragraphs, bold key terms, use newlines between ideas.
+- No addresses in description text when you already have a link to the contract.
+
+## 4. Link and Rendering Verification (blocking)
+
+- HTTP request every URL in the JSON. Use `curl -sI <url>`. 404 = automatic fail.
+- For Etherscan readContract links: open each one and verify the function selector matches the claimed function. Wrong function = automatic fail.
+- Build the site locally. Check that bold text, newlines, and formatting actually render correctly. Stars that don't render as bold = fail.
+- Check that no docs links resolve to login walls or signup pages.
+
+## Do NOT approve if
+
+- Any evidence claim can't be traced to the research report
+- Substantive research findings are missing from the JSON
+- Summaries are walls of text without structure
+- JSON is invalid or doesn't match the existing schema
+- Scores appear arbitrary or unjustified
+- Any URL in the JSON returns 404 or redirects to a login page
+- Bold text or newlines don't render correctly in the built site
+- Etherscan readContract links point to wrong function selectors
+- Summaries are jargon-heavy without explanation
+- Evidence sections dump everything from the report instead of curating the minimum sufficient set
+
 ## Approval
 
 If accuracy, completeness, and editorial quality all pass, and all previous review comments have been addressed:

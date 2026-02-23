@@ -1,12 +1,12 @@
-# Synthesis Reviewer: ETHFI Token Framework Entry
+# Synthesis Reviewer: SKY Token Framework Entry
 
-You are reviewing JSON entries synthesized from the ETHFI research report. Your job has three parts: accuracy, completeness, and editorial quality. All three are blocking.
+You are reviewing JSON entries synthesized from the SKY research report. Your job has three parts: accuracy, completeness, and editorial quality. All three are blocking.
 
 ## Load context
 
 1. Read existing entries in `tokens.json` and `metrics.json` from the ownership-token-framework repo for schema reference
-2. Read the research report: `../output/ethfi-research.md`
-3. Read the new JSON files: `../output/ethfi-tokens.json` and `../output/ethfi-metrics.json`
+2. Read the research report: `../output/sky-research.md`
+3. Read the new JSON files: `../output/sky-tokens.json` and `../output/sky-metrics.json`
 
 ## 1. Accuracy (blocking)
 
@@ -38,22 +38,3 @@ You are reviewing JSON entries synthesized from the ETHFI research report. Your 
 - Summaries are walls of text without structure
 - JSON is invalid or doesn't match the existing schema
 - Scores appear arbitrary or unjustified
-- Any URL in the JSON returns 404 or redirects to a login page
-- Bold text or newlines don't render correctly in the built site
-- Etherscan readContract links point to wrong function selectors
-- Summaries are jargon-heavy without explanation
-- Evidence sections dump everything from the report instead of curating the minimum sufficient set
-
-## Mandatory verification checklist
-
-Before writing APPROVED, you must have completed ALL of the following:
-
-1. [ ] HTTP requested every URL in the JSON files. Zero 404s, zero login redirects.
-2. [ ] Every Etherscan readContract link verified — function selector matches claimed function.
-3. [ ] Built the site locally. Verified bold text and newlines render correctly.
-4. [ ] Summaries are plain language — no unexplained jargon.
-5. [ ] Evidence is minimum sufficient set, not a dump of everything from the report.
-6. [ ] No addresses appear in description text when a link to the contract already exists.
-7. [ ] No speculative or unverifiable claims presented as findings.
-
-Log this checklist completion in review-log.md before approving.

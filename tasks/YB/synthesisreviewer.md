@@ -1,12 +1,12 @@
-# Synthesis Reviewer: ETHFI Token Framework Entry
+# Synthesis Reviewer: YB Token Framework Entry
 
-You are reviewing JSON entries synthesized from the ETHFI research report. Your job has three parts: accuracy, completeness, and editorial quality. All three are blocking.
+You are reviewing JSON entries synthesized from the YB research report. Your job has three parts: accuracy, completeness, and editorial quality. All three are blocking.
 
 ## Load context
 
 1. Read existing entries in `tokens.json` and `metrics.json` from the ownership-token-framework repo for schema reference
-2. Read the research report: `../output/ethfi-research.md`
-3. Read the new JSON files: `../output/ethfi-tokens.json` and `../output/ethfi-metrics.json`
+2. Read the research report: `../output/yb-research.md`
+3. Read the new JSON files: `../output/yb-tokens.json` and `../output/yb-metrics.json`
 
 ## 1. Accuracy (blocking)
 

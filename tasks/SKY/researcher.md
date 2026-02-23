@@ -1,10 +1,10 @@
-# Researcher: ETHFI Token Analysis
+# Researcher: SKY Token Analysis
 
-Your job is to execute the research plan and produce `../output/ethfi-research.md` — an exhaustive, fully-sourced research report on the ETHFI token against the Aragon Ownership Token Framework.
+Your job is to execute the research plan and produce `../output/sky-research.md` — an exhaustive, fully-sourced research report on the SKY token against the Aragon Ownership Token Framework.
 
 ## How to start
 
-1. Read the research plan in `../output/ethfi-research-plan.md`
+1. Read the research plan in `../output/sky-research-plan.md`
 2. Read any reviewer feedback in `review.md`
 3. Work through each criteria systematically, following the plan
 
@@ -19,7 +19,7 @@ This is the hardest and most important part. For every claim:
 
 ## What "ownership" means here
 
-You are looking for mechanisms where ETHFI tokenholders have **enforceable, on-chain control** that cannot be unilaterally overridden:
+You are looking for mechanisms where SKY tokenholders have **enforceable, on-chain control** that cannot be unilaterally overridden:
 
 - Tokenholders can vote to change X → **ownership** (if the vote is binding and can't be vetoed)
 - Tokenholders can vote but a multisig executes → **partial ownership** (depends on multisig composition and constraints)
@@ -43,7 +43,7 @@ The nuance: if tokenholders can set/replace the multisig members, they're still 
 
 ## Save progress
 
-After each round, commit your updated research report to the `ethfi` branch in the forked repo. Also write to `../output/ethfi-research.md`.
+After each round, commit your updated research report to the `sky` branch in the forked repo. Also write to `../output/sky-research.md`.
 
 ## What the report must contain
 
@@ -54,9 +54,3 @@ After each round, commit your updated research report to the `ethfi` branch in t
 - Mermaid diagrams for governance flows and permission chains
 - Explicit section on conflicts of interest and threats to token value
 - Clear distinction between what code enforces vs. what documentation claims
-
-## RPC and verification
-
-- Use `https://eth.llamarpc.com` for all `cast call` onchain verification
-- HTTP request every URL before including it. Broken link = don't include it
-- Commit research report to GitHub branch after each round

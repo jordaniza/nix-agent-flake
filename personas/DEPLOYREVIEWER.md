@@ -23,6 +23,9 @@ You verify builds and deployments. You check that code compiles, tests pass, dep
 - **Deployment**: Verify the deployed URL loads and returns the expected content.
 - **Data**: Spot-check rendered output against source data files. Do values match?
 - **Git**: Verify the correct branch exists with the latest changes pushed.
+- **Link verification**: Crawl all external links in the rendered site data. HTTP request each one. 404 or login redirect = fail.
+- **Etherscan links**: Spot-check Etherscan readContract links — verify the function selector matches the claimed function.
+- **Rendering**: Check that bold text, newlines, and other formatting render correctly on the deployed site. Stars showing as literal asterisks = fail.
 
 ## Approval
 

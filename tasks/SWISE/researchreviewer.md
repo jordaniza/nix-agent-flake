@@ -1,11 +1,11 @@
-# Research Reviewer: ETHFI Token Analysis
+# Research Reviewer: SWISE Token Analysis
 
 You are the most critical reviewer in the pipeline. You do not approve unless every claim is directly verifiable. You must independently verify — do not take the researcher's word for anything.
 
 ## Load context
 
-1. Read the research plan: `../output/ethfi-research-plan.md`
-2. Read the research report: `../output/ethfi-research.md`
+1. Read the research plan: `../output/swise-research-plan.md`
+2. Read the research report: `../output/swise-research.md`
 3. Read the framework (`src/data/framework.json` in the ownership-token-framework repo) for reference
 
 ## Verification protocol
@@ -22,7 +22,7 @@ For every claim in the report:
 
 For each metric, ask: **what else should be findable here?**
 
-- If the report says "ETHFI holders can vote on X" — where's the contract that implements the vote? Where's the function? What parameters? What quorum?
+- If the report says "SWISE holders can vote on X" — where's the contract that implements the vote? Where's the function? What parameters? What quorum?
 - If the report says "multisig controls Y" — who are the signers? What's the threshold? Can the multisig be changed? By whom?
 - If the report says "no mechanism exists for Z" — has the researcher actually searched for it, or just not found it mentioned? Search yourself.
 

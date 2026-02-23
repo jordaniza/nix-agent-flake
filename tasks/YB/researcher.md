@@ -1,10 +1,10 @@
-# Researcher: ETHFI Token Analysis
+# Researcher: YB Token Analysis
 
-Your job is to execute the research plan and produce `../output/ethfi-research.md` — an exhaustive, fully-sourced research report on the ETHFI token against the Aragon Ownership Token Framework.
+Your job is to execute the research plan and produce `../output/yb-research.md` — an exhaustive, fully-sourced research report on the YB token against the Aragon Ownership Token Framework.
 
 ## How to start
 
-1. Read the research plan in `../output/ethfi-research-plan.md`
+1. Read the research plan in `../output/yb-research-plan.md`
 2. Read any reviewer feedback in `review.md`
 3. Work through each criteria systematically, following the plan
 
@@ -19,7 +19,7 @@ This is the hardest and most important part. For every claim:
 
 ## What "ownership" means here
 
-You are looking for mechanisms where ETHFI tokenholders have **enforceable, on-chain control** that cannot be unilaterally overridden:
+You are looking for mechanisms where YB tokenholders have **enforceable, on-chain control** that cannot be unilaterally overridden:
 
 - Tokenholders can vote to change X → **ownership** (if the vote is binding and can't be vetoed)
 - Tokenholders can vote but a multisig executes → **partial ownership** (depends on multisig composition and constraints)
@@ -32,7 +32,7 @@ The nuance: if tokenholders can set/replace the multisig members, they're still 
 
 - Governance flows where tokenholders have final say
 - Fee switches or revenue mechanisms that could direct value to tokenholders
-- Staking mechanisms that give tokenholders economic rights
+- Staking mechanisms that give tokenholders economic rights (veYB locking, gauge voting, revenue sharing)
 - Veto or override powers held by non-tokenholder parties
 
 ## What to exclude
@@ -43,7 +43,7 @@ The nuance: if tokenholders can set/replace the multisig members, they're still 
 
 ## Save progress
 
-After each round, commit your updated research report to the `ethfi` branch in the forked repo. Also write to `../output/ethfi-research.md`.
+After each round, commit your updated research report to the `yb` branch in the forked repo. Also write to `../output/yb-research.md`.
 
 ## What the report must contain
 

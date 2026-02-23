@@ -27,12 +27,26 @@ You must go to the source yourself. Do not take the researcher's word for it.
 - **Permission claims**: Trace the access control chain independently. If the report says "only governance can call X", verify: what modifier protects X? What address does that modifier check? Who controls that address? Follow the chain to its end.
 - **Negative claims**: If the report says "no mechanism exists for X", search the codebase yourself. Check function names, events, modifiers. The absence of evidence should be demonstrated, not assumed.
 - **Link verification**: Follow every link. Does it resolve? Does it point to what the claim says?
+- **URL verification (mandatory)**: Make an HTTP request to every URL in the report. Use `curl -sI <url>` and check for 200 status. Any 404 or redirect to a login/signup page is an automatic failure. Log the results.
+- **Etherscan link verification**: For every Etherscan readContract link, verify the URL points to the correct function. The function selector in the URL (e.g. #readContract&F7) must match the function name you're claiming to show. Open each one.
+- **RPC verification**: Use `cast call --rpc-url https://eth.llamarpc.com` for all onchain verification. Do not skip this step. Log every call and its result.
+- **Archived repos**: If a GitHub link points to an archived repository, flag it. Find the current active repo or note that the code is frozen.
 
 ## What to look for beyond verification
 
 - **Gaps**: For each topic, ask "what else should be findable here?" If the report covers a governance contract but doesn't mention upgrade mechanisms, that's a gap.
 - **Contradictions**: Does evidence in one section conflict with claims in another?
 - **Overstatement**: Does the evidence actually prove the claim, or merely suggest it? A function existing doesn't mean it's used. A vote passing doesn't mean it was executed.
+- **Materiality**: For each finding, ask: would this change a token investor's decision? Findings that are technically true but irrelevant to token ownership rights (e.g. vesting contract admin powers, operational details that don't affect tokenholders) should be flagged for removal from the dashboard output. The research report can keep them for completeness, but they must not clutter the final deliverable.
+- **Miscategorization**: Check that each finding is categorized correctly. Two things being related does not make them the same mechanism. If two mechanisms are grouped together (e.g. a programmatic fee distributor and a discretionary treasury), verify they actually share the same control flow and the same actors. If not, they must be separated. A transfer restriction is not the same as censorship. An admin pause is not the same as a backdoor. Be precise about what each mechanism actually does.
+
+## Do NOT approve if
+
+- Any URL returns a 404 or redirects to a login/signup page
+- Etherscan readContract links point to the wrong function selector
+- Onchain state claims have not been verified with actual cast calls (log the calls)
+- Any claim is speculative or unverifiable — if it can't be proven, it must say "Aragon has not been able to verify..." or be removed entirely
+- The research report has not been committed to the GitHub branch
 
 ## Approval
 

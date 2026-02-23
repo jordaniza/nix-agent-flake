@@ -7,7 +7,7 @@ FLAKE        ?= .\#agent
 TASK         ?= SKY
 
 # Prompt for server name when a target needs it and SERVER wasn't passed
-NEEDS_SERVER := provision install connect setup-task fetch-results fetch-all fetch-logs deploy rebuild teardown run tail-logs feedback reset-stage
+NEEDS_SERVER := provision install connect setup-task fetch-results fetch-all fetch-logs deploy rebuild teardown run stop tail-logs feedback reset-stage
 
 ifneq ($(filter $(NEEDS_SERVER),$(MAKECMDGOALS)),)
 ifndef SERVER
@@ -33,7 +33,7 @@ SSH_OPTS      = -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 SCP           = scp -i $(SSH_KEY) $(SSH_OPTS)
 SSH           = ssh -i $(SSH_KEY) $(SSH_OPTS)
 
-.PHONY: help list status ssh-keygen _sync provision install connect setup-task fetch-results fetch-all fetch-logs teardown deploy rebuild run tail-logs feedback reset-stage
+.PHONY: help list status ssh-keygen _sync provision install connect setup-task fetch-results fetch-all fetch-logs teardown deploy rebuild run stop tail-logs feedback reset-stage
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -86,9 +86,11 @@ fetch-logs: ## Pull just the logs directory
 	mkdir -p ./results/$(TASK)/logs
 	rsync -avz -e 'ssh -i $(SSH_KEY) $(SSH_OPTS)' $(REMOTE):~/tasks/$(TASK)/logs/ ./results/$(TASK)/logs/
 
-run: ## Run the pipeline remotely (detaches, survives disconnect)
-	$(SSH) $(REMOTE) "nohup ~/run.sh $(TASK) >> ~/tasks/$(TASK)/logs/run.log 2>&1 & echo \$$!"
-	@echo "Pipeline started. Use 'make tail-logs' to follow."
+run: ## Run the pipeline (Ctrl+C to stop)
+	$(SSH) -t $(REMOTE) "~/run.sh $(TASK) 2>&1 | tee -a ~/tasks/$(TASK)/logs/run.log"
+
+stop: ## Kill a running pipeline
+	$(SSH) $(REMOTE) "pkill -f 'run.sh $(TASK)' || true; echo 'Stopped.'"
 
 tail-logs: ## Stream live agent output from the server (POLL=2)
 	@./tail-logs.sh $(REMOTE) $(SSH_KEY) "$(SSH_OPTS)" $(TASK) $(or $(POLL),2)
