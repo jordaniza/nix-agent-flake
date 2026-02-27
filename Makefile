@@ -125,11 +125,18 @@ reset-stage: ## Reset a stage and all after it so they re-run (STAGE=backend)
 		echo '---'; cat state.log"
 
 deploy: _register ## Tear down existing server (if any), provision, install NixOS, and push task
-	@hcloud server describe $(SERVER) >/dev/null 2>&1 && \
-		echo "Tearing down existing server $(SERVER)..." && \
-		hcloud server delete $(SERVER) && \
-		sleep 5 \
-		|| true
+	@if hcloud server describe $(SERVER) >/dev/null 2>&1; then \
+		CURRENT_TASK=$$(grep "^| $(SERVER) " agents.md 2>/dev/null | awk -F'|' '{gsub(/^ +| +$$/, "", $$3); print $$3}'); \
+		echo ""; \
+		echo "⚠  Server '$(SERVER)' already exists (running task: $${CURRENT_TASK:-unknown})"; \
+		echo "   This will DESTROY it and all data on it."; \
+		echo ""; \
+		read -p "Continue? [y/N] " confirm </dev/tty; \
+		case $$confirm in [yY]*) ;; *) echo "Aborted."; exit 1;; esac; \
+		echo "Tearing down $(SERVER)..."; \
+		hcloud server delete $(SERVER); \
+		sleep 5; \
+	fi
 	$(MAKE) provision SERVER=$(SERVER)
 	$(MAKE) install SERVER=$(SERVER)
 	$(MAKE) setup-task SERVER=$(SERVER) TASK=$(TASK)

@@ -2,6 +2,6 @@
 
 | Server | Task | Created |
 |--------|------|---------|
-| agent-02 | MACRO | 2026-02-11 |
-| agent-01 | unknown | 2026-02-15 |
-| agent-03 | YB | 2026-02-18 |
+| openClaw | unknown | 2026-02-24 |
+| zagdog | unknown | 2026-02-24 |
+| agent-01 | ETHFI | 2026-02-24 |

@@ -43,3 +43,23 @@
       - If no discretionary treasury exists → **neutral**
       - If the Ecosystem Reserve (VestingEscrow) is controlled by an EOA/multisig rather than the DAO → **TBD**, and note this as a finding
     - The Ecosystem Reserve being a VestingEscrow controlled by an EOA (item 13) is relevant here. This needs to be researched first and then the treasury section scored accordingly.
+
+### Round 2 Feedback
+
+17. **Protocol revenue ≠ veYB revenue — fix this distinction**: Protocol revenue is LP fees + veYB fees, adjusted for position rebalancing expenses. What veYB holders actually receive is the **protocol fee** (also called `admin_fee`) — a subset of protocol revenue, not the whole thing. The report and dashboard must not conflate total protocol revenue with veYB distributions.
+
+18. **Protocol description — literal change**: Replace whatever description is currently used with: "Yield Basis is the liquidity protocol designed to eliminate Impermanent Loss (IL) in AMMs using constantly-maintained 2x leveraged liquidity provision"
+
+19. **Attribute fee data source**: In the fees section, credit and link to [ValueVerse](https://yb.valueverse.ai) as a data source.
+
+20. **Vesting — get the timeline right**: The current text implies tokens fully unlock in March 2026, which is wrong. The actual structure:
+    - **24 months total vesting** with a **6 month cliff**
+    - During the 6-month cliff (ending ~March 2026), tokens cannot be sold but **can be locked into veYB** — meaning holders chose protocol fees over liquidity
+    - ~35M YB was locked by team and investors during this cliff period
+    - At cliff end (March 2026), **25% unlocks**. The remaining **75% vests linearly over the next 18 months**
+    - These vesting tokens cannot be instantly used to influence governance decisions — they release gradually
+    - The report should reflect this correctly: long vesting with meaningful lockup, not a short unlock event
+
+### Deploy Stage
+
+21. **Vercel rate limiting**: At the deploy stage, check if the Vercel deployment failed due to rate limiting. If it was rate limited, reattempt the deployment. If it was not rate limited, do nothing.

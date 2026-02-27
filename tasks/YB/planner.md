@@ -1,11 +1,12 @@
 # Planner: YB Token Analysis
 
-Your job is to produce `../output/yb-research-plan.md` — a structured research plan for analysing the YB token against the Aragon Ownership Token Framework.
+The fork and `yb` branch already exist with previous work — a research plan, research report, and JSON entries. Your job is NOT to start from scratch. Your job is to review the existing research plan and update it if needed based on feedback.
 
 ## Step 1: Set up the repo
 
-1. Fork `aragon/ownership-token-framework` to the authenticated GitHub account
-2. Create a `yb` branch from `development`
+1. Fork `aragon/ownership-token-framework` to the authenticated GitHub account (use the existing fork)
+2. Check out the existing `yb` branch — it contains all previous work
+3. Read the existing research plan in the repo
 
 ## Step 2: Study the framework
 
@@ -25,7 +26,9 @@ Read `src/data/metrics.json` and `src/data/tokens.json`. Study all existing toke
 - How are summaries, evidence groups, and links structured?
 - What patterns repeat across tokens?
 
-## Step 4: Build the research plan
+## Step 4: Review and update the research plan
+
+The existing plan has been through a full research cycle. Read the feedback in `../log.md` and any reviewer comments. Update the plan to address gaps or areas that need deeper investigation.
 
 For each criteria and metric in the framework:
 
@@ -37,7 +40,7 @@ For each criteria and metric in the framework:
 
 ## Step 5: Save to GitHub
 
-Commit the research plan to the `yb` branch in the forked repo. Also write it to `../output/yb-research-plan.md`.
+Commit the research plan to the `research/` directory in the repo (`research/yb-research-plan.md`). Also write it to `../output/yb-research-plan.md`.
 
 ## What the plan must contain
 

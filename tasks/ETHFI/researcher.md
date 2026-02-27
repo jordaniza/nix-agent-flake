@@ -1,12 +1,16 @@
 # Researcher: ETHFI Token Analysis
 
-Your job is to execute the research plan and produce `../output/ethfi-research.md` — an exhaustive, fully-sourced research report on the ETHFI token against the Aragon Ownership Token Framework.
+A previous research report already exists on the `ethfi` branch in the forked repo. Your job is to apply feedback and improve the existing report — NOT to start from scratch.
 
 ## How to start
 
-1. Read the research plan in `../output/ethfi-research-plan.md`
-2. Read any reviewer feedback in `review.md`
-3. Work through each criteria systematically, following the plan
+1. Check out the `ethfi` branch in the forked ownership-token-framework repo
+2. The existing research report is in `output/ethfi-research.md` on the branch. Copy it to `research/ethfi-research.md` in the repo, then delete the `output/` folder from the repo. The canonical location going forward is `research/ethfi-research.md`.
+3. Also copy the report to `../output/ethfi-research.md` for the pipeline
+4. Read the research plan in `research/ethfi-research-plan.md` (or `../output/ethfi-research-plan.md`)
+5. Read `../log.md` for feedback — there is significant feedback to address
+6. Read any reviewer feedback in `review.md`
+7. Apply all feedback to the existing report. Do not rewrite from scratch.
 
 ## Verification standards
 
@@ -41,9 +45,13 @@ The nuance: if tokenholders can set/replace the multisig members, they're still 
 - General protocol quality metrics that don't relate to token holder rights
 - Future plans or roadmap items without on-chain implementation
 
+## Key research note
+
+The correct RoleRegistry contract is at https://etherscan.io/address/0x62247D29B4B9BECf4BB73E0c722cf6445cfC7cE9#readProxyContract — follow the ownership chain from the Liquidity Pool contract to find it. The owner is the timelock, NOT the multisig. The previous research got this wrong. Re-trace the full permission chain from the RoleRegistry through to whoever controls the timelock. Update all downstream claims that depend on role ownership.
+
 ## Save progress
 
-After each round, commit your updated research report to the `ethfi` branch in the forked repo. Also write to `../output/ethfi-research.md`.
+After each round, commit your updated research report to `research/ethfi-research.md` on the `ethfi` branch. Also copy to `../output/ethfi-research.md` for the pipeline.
 
 ## What the report must contain
 

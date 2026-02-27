@@ -1,16 +1,12 @@
-# Researcher: YB Token Analysis
+# Researcher: ONDO Token Analysis
 
-A previous research report already exists on the `yb` branch in the forked repo. Your job is to apply feedback and improve the existing report — NOT to start from scratch.
+Your job is to execute the research plan and produce `../output/ondo-research.md` — an exhaustive, fully-sourced research report on the ONDO token against the Aragon Ownership Token Framework.
 
 ## How to start
 
-1. Check out the `yb` branch in the forked ownership-token-framework repo
-2. The existing research report is in `output/yb-research.md` on the branch. Copy it to `research/yb-research.md` in the repo, then delete the `output/` folder from the repo. The canonical location going forward is `research/yb-research.md`.
-3. Also copy the report to `../output/yb-research.md` for the pipeline
-4. Read the research plan in `research/yb-research-plan.md` (or `../output/yb-research-plan.md`)
-5. Read `../log.md` for feedback — there is significant feedback to address
-6. Read any reviewer feedback in `review.md`
-7. Apply all feedback to the existing report. Do not rewrite from scratch.
+1. Read the research plan in `../output/ondo-research-plan.md`
+2. Read any reviewer feedback in `review.md`
+3. Work through each criteria systematically, following the plan
 
 ## Verification standards
 
@@ -23,7 +19,7 @@ This is the hardest and most important part. For every claim:
 
 ## What "ownership" means here
 
-You are looking for mechanisms where YB tokenholders have **enforceable, on-chain control** that cannot be unilaterally overridden:
+You are looking for mechanisms where ONDO tokenholders have **enforceable, on-chain control** that cannot be unilaterally overridden:
 
 - Tokenholders can vote to change X → **ownership** (if the vote is binding and can't be vetoed)
 - Tokenholders can vote but a multisig executes → **partial ownership** (depends on multisig composition and constraints)
@@ -36,8 +32,11 @@ The nuance: if tokenholders can set/replace the multisig members, they're still 
 
 - Governance flows where tokenholders have final say
 - Fee switches or revenue mechanisms that could direct value to tokenholders
-- Staking mechanisms that give tokenholders economic rights (veYB locking, gauge voting, revenue sharing)
+- The relationship between ONDO governance and OUSG/USDY product parameters — can ONDO holders influence fee rates, minting, or redemption rules?
+- Transfer restrictions, blocklists, or KYC gating on the ONDO token itself
 - Veto or override powers held by non-tokenholder parties
+- Multi-chain deployment — does governance scope differ by chain?
+- The separation between Ondo Finance (company) and any onchain DAO — who actually controls what?
 
 ## What to exclude
 
@@ -47,7 +46,7 @@ The nuance: if tokenholders can set/replace the multisig members, they're still 
 
 ## Save progress
 
-After each round, commit your updated research report to `research/yb-research.md` on the `yb` branch. Also copy to `../output/yb-research.md` for the pipeline.
+After each round, commit your updated research report to `research/ondo-research.md` on the `ondo` branch. Also copy to `../output/ondo-research.md` for the pipeline.
 
 ## What the report must contain
 

@@ -84,3 +84,65 @@
 32. **L2 upgradeability = censorship vector**: The L2 token upgradeability should be mentioned as a potential censorship vector. The L1 token is not upgradeable so L1 censorship is not possible. Be precise about which chain has the risk.
 
 33. **Accrual active = green check**: Mark accrual active as green.
+
+### Deploy Stage
+
+34. **Vercel rate limiting**: At the deploy stage, check if the Vercel deployment failed due to rate limiting. If it was rate limited, reattempt the deployment. If it was not rate limited, do nothing.
+
+### Research Scope Expansion
+
+35. **EtherFi is more than an LST protocol**: EtherFi's recent moves are in the neobank direction. Summaries should reflect this broader positioning, not just characterise them as an LST protocol.
+
+36. **Additional contracts to research** (from https://etherfi.gitbook.io/etherfi/staking):
+    - **eUSD**: Boring vault, non-upgradeable. These are Veda vaults per the etherfi.gitbook.io docs. No owner but has a `RolesAuthority` contract with owner 0xCE (4/6 msig).
+    - **beHYPE**
+    - **eBTC**
+    - **weETHs**
+    - **weETHk**
+    - EtherFi also has a number of other multichain liquid vaults.
+
+37. **Research reviewer priority at this stage**: Review the full set of contracts (including the additional vaults above) and check if there are substantial deviations from the ownership model and how that maps back to ETHFI as a token. We don't need a full breakdown of the whole product suite, but for completeness it's worth listing these to have a baseline as things change.
+    - Notable that most if not all of EtherFi is ultimately controlled via multisig. If we see examples where there truly is an onchain, fully tokenholder-owned flow, that's interesting, but it's extremely unlikely to change the whole picture.
+    - Also, as sETHFI is a discretionary buyback system, unless one of these products has an unknown value flow component, it's also unlikely to change the value accrual piece.
+
+### Research Report — Round 2 Feedback
+
+38. **Treasury**: Treasury is a SafeProxy but doesn't appear to be upgradeable. It's a 3/8 sig (confirmed via `threshold` and enumerating `getOwners`).
+
+39. **sETHFI is a Boring Vault**: Confirmed via code on Etherscan and cross-referenced with the gitbook docs that say EtherFi vaults are Veda Boring Vaults. They are non-upgradeable.
+
+40. **Role matrix missing 1/6 multisig on sETHFI**: The role matrix doesn't list the 1/6 multisig on the sETHFI contract anywhere. Add it.
+
+41. **What does the EtherFi Admin do?**: It seems to play an important role. Research and document its functions and permissions.
+
+42. **List key contracts with one-liner descriptions**: To provide a better understanding, list the key contracts of the protocol with a very short one-liner regarding what exactly they do, and whether they are relevant for ownership or value accrual.
+
+43. **Nit in Key Findings**: '**Value Accrual:** Active buyback program distributing to **_sETHFI stakers_**, but Foundation-discretionary via 1-of-5 wallet.' — should say "sETHFI holders" or "ETHFI stakers", not "sETHFI stakers".
+
+44. **Treasury upgradeability = No**: In Governance and Ownership Model → Contract Architecture → Treasury, change [UNVERIFIED] to No.
+
+45. **sETHFI upgradeability = No**: In Governance and Ownership Model → Contract Architecture → sETHFI, change [UNVERIFIED] to No.
+
+46. **L2 token bypass of timelock**: In 'What Bypasses Timelock (role-based, instant)', add the ability of owners of ETHFI L2 tokens on Base and Arbitrum to call `setMinter()` and `upgradeToAndCall()` on the token contracts without a timelock.
+
+47. **Specify which timelock**: You don't always specify which timelock is used. Clarify — is it always the Upgrade timelock? When is the Operating timelock used?
+
+48. **LiquidityPool role holders — enumerate them**: LiquidityPool has Liquidity Pool Admin Role managed by the RoleRegistry. The RoleRegistry (the one that owns the LiquidityPool) exposes enumerable role holders. There are 2 for `LIQUIDITY_POOL_ADMIN_ROLE` (`0x0e8d94...`):
+    - `0x0EF8fa4760Db8f5Cd4d993f3e3416f30f942D705` — EtherFi Admin
+    - `0xcD425f44758a08BaAB3C4908f3e3dE5776e45d7a` — Operating Timelock
+    - The analysis is good but check this where you can for all roles. No reason not to.
+
+49. **Role system is convoluted — be pragmatic**: The RoleRegistry defines system roles but the hashes are defined on the relevant contracts. `RoleRegistry::owner` can manage roles unilaterally IF they are registered there and the contract proxy calls the registry. However, some contracts use AccessControl independently (e.g. timelocks maintain their own `hasRole` not managed by the registry, Safes have their own access pattern). The roles authority section is therefore incomplete. Be pragmatic: this is a very complex system and it's hard to trace every role. The important points people should know are the timelocks, the role registry, and the fact that many key roles are held by the Operating multisig and the EtherFi Admin. As all of these are ultimately malleable and tough to fully trace, the call is with the tokenholder on whether they trust EtherFi — but we've seen no evidence of bad faith. You mention this later but section 1.2 specifically is light on this.
+
+50. **Section 1.3 — integrate vault contracts**: 1.3 suffers from not having all the contracts listed. The vaults section below explains the authority element to the boring vaults. Ensure that data is integrated with section 1.3, not siloed.
+
+51. **Section 1.5 — 1B minted to a Safe**: Mention that the 1B minted tokens went to a Safe.
+
+52. **Section 1.6 — privileged access beyond pause**: What you write is correct but privileged access extends beyond pause. Is pause the only role worth concerning ourselves over? What we care about is whether ETHFI holders have ultimate, meaningful control over protocol actions that aren't rote operational work. Pausing is a good example but there may be others like moving funds. In the ETHFI case, token holders have basically no role or access gating — say that.
+
+53. **Section 2.1 — "stakers" is ambiguous**: EtherFi is a staking system so "stakers" can mean several things. The Protocol Fee Split to Stakers — is this eETH stakers, not ETHFI stakers? Be specific.
+    - The rest of the info is good. Check if all signers on the 1/5 msig are EOAs, as 1-of-5 seems very low. Alternatively, is buyback execution a simple execution call and does that msig have no other power in the system?
+
+54. **Integrate boring vaults into the wider overview**: Include them in the roles overview. Note: the vaults do accrue value in theory. The Dune dashboard shows liquid vault revenue, and the buyback docs state some protocol revenue is used (Stake, Liquid, and Cash).
+
+55. **Cross-section integration**: Overall the research is good. The main change is to ensure sections accurately integrate new information. Right now it's all correct but spread across many places. If someone reads only some sections, the info feels incomplete. Consolidate and cross-reference so each section stands on its own while pointing to detail elsewhere.

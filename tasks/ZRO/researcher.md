@@ -1,16 +1,12 @@
-# Researcher: YB Token Analysis
+# Researcher: ZRO Token Analysis
 
-A previous research report already exists on the `yb` branch in the forked repo. Your job is to apply feedback and improve the existing report — NOT to start from scratch.
+Your job is to execute the research plan and produce `../output/zro-research.md` — an exhaustive, fully-sourced research report on the ZRO token against the Aragon Ownership Token Framework.
 
 ## How to start
 
-1. Check out the `yb` branch in the forked ownership-token-framework repo
-2. The existing research report is in `output/yb-research.md` on the branch. Copy it to `research/yb-research.md` in the repo, then delete the `output/` folder from the repo. The canonical location going forward is `research/yb-research.md`.
-3. Also copy the report to `../output/yb-research.md` for the pipeline
-4. Read the research plan in `research/yb-research-plan.md` (or `../output/yb-research-plan.md`)
-5. Read `../log.md` for feedback — there is significant feedback to address
-6. Read any reviewer feedback in `review.md`
-7. Apply all feedback to the existing report. Do not rewrite from scratch.
+1. Read the research plan in `../output/zro-research-plan.md`
+2. Read any reviewer feedback in `review.md`
+3. Work through each criteria systematically, following the plan
 
 ## Verification standards
 
@@ -23,7 +19,7 @@ This is the hardest and most important part. For every claim:
 
 ## What "ownership" means here
 
-You are looking for mechanisms where YB tokenholders have **enforceable, on-chain control** that cannot be unilaterally overridden:
+You are looking for mechanisms where ZRO tokenholders have **enforceable, on-chain control** that cannot be unilaterally overridden:
 
 - Tokenholders can vote to change X → **ownership** (if the vote is binding and can't be vetoed)
 - Tokenholders can vote but a multisig executes → **partial ownership** (depends on multisig composition and constraints)
@@ -34,20 +30,25 @@ The nuance: if tokenholders can set/replace the multisig members, they're still 
 
 ## What to include that's relevant
 
-- Governance flows where tokenholders have final say
-- Fee switches or revenue mechanisms that could direct value to tokenholders
-- Staking mechanisms that give tokenholders economic rights (veYB locking, gauge voting, revenue sharing)
-- Veto or override powers held by non-tokenholder parties
+- The fee switch referendum mechanism — how does the onchain vote work? What contract implements it? What parameters are set? Has a vote occurred? What was the result?
+- Protocol fee collection — where do fees accumulate today? Who controls them? Is there a treasury?
+- LayerZero Foundation vs LayerZero Labs — what does each control onchain? Who holds admin keys on core contracts?
+- EndpointV2 immutability claims — are the core messaging contracts truly immutable? Check for proxy patterns, upgrade functions, owner roles
+- DVN and Executor configuration — who sets the default DVN/Executor? Can this be changed? By whom? Does ZRO have a role in DVN economics?
+- Token contract analysis — minting authority, burn mechanisms, pausing, blocklists, transfer restrictions
+- Multi-chain presence — governance scope across Ethereum, Arbitrum, Base, Optimism, etc. Same admin on all chains?
+- Token distribution — vesting schedules, Foundation allocation, Labs allocation, community allocation, unlock timeline
+- Zero network announcement (Feb 10, 2026) — document the announcement and stated plans (ZRO as native asset, institutional backing from Citadel Securities/DTCC/ICE/ARK/Google Cloud, "zones" architecture) but clearly label this as forward-looking. It is NOT evidence of current token value. Include it as context in a dedicated section.
 
 ## What to exclude
 
 - Operational admin functions where tokenholders retain the power to replace the admin
 - General protocol quality metrics that don't relate to token holder rights
-- Future plans or roadmap items without on-chain implementation
+- Future plans or roadmap items without on-chain implementation — specifically, do not score based on the Zero network since it does not exist yet
 
 ## Save progress
 
-After each round, commit your updated research report to `research/yb-research.md` on the `yb` branch. Also copy to `../output/yb-research.md` for the pipeline.
+After each round, commit your updated research report to `research/zro-research.md` on the `zro` branch. Also copy to `../output/zro-research.md` for the pipeline.
 
 ## What the report must contain
 
@@ -58,6 +59,7 @@ After each round, commit your updated research report to `research/yb-research.m
 - Mermaid diagrams for governance flows and permission chains
 - Explicit section on conflicts of interest and threats to token value
 - Clear distinction between what code enforces vs. what documentation claims
+- Dedicated section on the Zero network announcement — clearly labelled as forward-looking context, not scored evidence
 
 ## RPC and verification
 

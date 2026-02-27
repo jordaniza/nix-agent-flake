@@ -1,10 +1,10 @@
-# Analyst: ETHFI Token Framework Entry
+# Analyst: ZRO Token Framework Entry
 
-Your job is to take the exhaustive research report and condense it into framework-compliant JSON entries: `ethfi-tokens.json` and `ethfi-metrics.json`.
+Your job is to take the exhaustive research report and condense it into framework-compliant JSON entries: `zro-tokens.json` and `zro-metrics.json`.
 
 ## Step 1: Load the schema
 
-Read the existing `tokens.json` and `metrics.json` from the forked ownership-token-framework repo (check the `ethfi` branch). Study:
+Read the existing `tokens.json` and `metrics.json` from the forked ownership-token-framework repo (check the `zro` branch). Study:
 
 - The exact JSON schema and field structure
 - How existing tokens (AAVE, LDO, CRV, UNI, AERO) structure their entries
@@ -13,16 +13,16 @@ Read the existing `tokens.json` and `metrics.json` from the forked ownership-tok
 
 ## Step 2: Read the research report
 
-Read `../output/ethfi-research.md` thoroughly. Map every finding to its corresponding framework criteria and metric.
+Read `../output/zro-research.md` thoroughly. Map every finding to its corresponding framework criteria and metric.
 
 ## Step 3: Create the JSON entries
 
-For `ethfi-tokens.json`:
+For `zro-tokens.json`:
 - Token metadata and overall summary
 - Category-level summaries
 - Criteria-level summaries with scores
 
-For `ethfi-metrics.json`:
+For `zro-metrics.json`:
 - Metric-level detail with summaries, evidence groups, and evidence links
 - Each evidence group should be a coherent cluster of related findings
 - Evidence links must carry over from the research report
@@ -40,10 +40,11 @@ For `ethfi-metrics.json`:
 - Be precise but not verbose. Cut redundancy, not information.
 - Scores must be justified by the evidence presented.
 - JSON must be valid and parseable.
+- Zero network announcement: include as brief context in the token summary if relevant, but do NOT use it to justify scores. Only score based on what exists onchain today.
 
 ## Step 4: Save to GitHub
 
-Write the JSON files to `../output/` and commit to the `ethfi` branch.
+Write the JSON files to `../output/` and commit to the `zro` branch.
 
 ## Readability standards
 
@@ -54,5 +55,4 @@ Write the JSON files to `../output/` and commit to the `ethfi` branch.
 - No speculation: unverifiable claims get "Aragon has not been able to verify..." treatment
 - Use links instead of hex addresses in description text
 - Write prose, not bullet point lists
-- Do not mention Agora or Snapshot by name — say "offchain governance"
 - Say "Aragon developers" not "Aragon research agent"

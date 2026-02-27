@@ -1,0 +1,4 @@
+plan 5 planner planreviewer
+research 20 researcher researchreviewer
+synthesis 8 analyst synthesisreviewer
+deploy 3 builder deployreviewer

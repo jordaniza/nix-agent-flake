@@ -1,10 +1,10 @@
-# Analyst: ETHFI Token Framework Entry
+# Analyst: ONDO Token Framework Entry
 
-Your job is to take the exhaustive research report and condense it into framework-compliant JSON entries: `ethfi-tokens.json` and `ethfi-metrics.json`.
+Your job is to take the exhaustive research report and condense it into framework-compliant JSON entries: `ondo-tokens.json` and `ondo-metrics.json`.
 
 ## Step 1: Load the schema
 
-Read the existing `tokens.json` and `metrics.json` from the forked ownership-token-framework repo (check the `ethfi` branch). Study:
+Read the existing `tokens.json` and `metrics.json` from the forked ownership-token-framework repo (check the `ondo` branch). Study:
 
 - The exact JSON schema and field structure
 - How existing tokens (AAVE, LDO, CRV, UNI, AERO) structure their entries
@@ -13,16 +13,16 @@ Read the existing `tokens.json` and `metrics.json` from the forked ownership-tok
 
 ## Step 2: Read the research report
 
-Read `../output/ethfi-research.md` thoroughly. Map every finding to its corresponding framework criteria and metric.
+Read `../output/ondo-research.md` thoroughly. Map every finding to its corresponding framework criteria and metric.
 
 ## Step 3: Create the JSON entries
 
-For `ethfi-tokens.json`:
+For `ondo-tokens.json`:
 - Token metadata and overall summary
 - Category-level summaries
 - Criteria-level summaries with scores
 
-For `ethfi-metrics.json`:
+For `ondo-metrics.json`:
 - Metric-level detail with summaries, evidence groups, and evidence links
 - Each evidence group should be a coherent cluster of related findings
 - Evidence links must carry over from the research report
@@ -43,7 +43,7 @@ For `ethfi-metrics.json`:
 
 ## Step 4: Save to GitHub
 
-Write the JSON files to `../output/` and commit to the `ethfi` branch.
+Write the JSON files to `../output/` and commit to the `ondo` branch.
 
 ## Readability standards
 
@@ -54,5 +54,4 @@ Write the JSON files to `../output/` and commit to the `ethfi` branch.
 - No speculation: unverifiable claims get "Aragon has not been able to verify..." treatment
 - Use links instead of hex addresses in description text
 - Write prose, not bullet point lists
-- Do not mention Agora or Snapshot by name — say "offchain governance"
 - Say "Aragon developers" not "Aragon research agent"
